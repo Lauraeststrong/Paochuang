@@ -3,18 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My First HTML Page</title>
-</head>
-<body>
-    <h1>Welcome to My HTML Page</h1>
-    <p>This is a simple HTML page.</p>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>High德地图</title>
     <!-- 引入高德地图 JS API -->
     <script src="https://webapi.amap.com/maps?v=2.0&key=5d85ca7ca6fdfbb78e9468a3c9d7ce09"></script>
@@ -56,50 +44,14 @@
                 }
             });
         });
-    </script>
-</body>
-</html>
-<script>
-    var map = new AMap.Map('container', {
-      resizeEnable: true,
-      center: [116.397428, 39.90923], // 初始位置设置为北京（或者任意其他位置）
-      zoom: 13
-    });
-  
-    // 创建定位控件
-    AMap.plugin('AMap.Geolocation', function() {
-      var geolocation = new AMap.Geolocation({
-        enableHighAccuracy: true, // 是否使用高精度定位
-        timeout: 10000,           // 设置超时时间，单位为毫秒
-        buttonPosition: 'LB',     // 定位按钮的显示位置
-      });
-      map.addControl(geolocation);
-  
-      // 获取当前位置并更新地图中心点
-      geolocation.getCurrentPosition(function(status, result) {
-        if (status === 'complete') {
-          // 更新地图中心点为当前位置
-          map.setCenter([result.position.lng, result.position.lat]);
-          
-          // 在地图上标记当前位置
-          var marker = new AMap.Marker({
-            position: [result.position.lng, result.position.lat], // 标记位置
-          });
-          marker.setMap(map);
-        } else {
-          console.error('定位失败：', result);
-        }
-      });
-    });
-  </script>
-<script>
-    var path = [
-      [116.397428, 39.90923], // 路径点1
-      [116.399428, 39.91023], // 路径点2
-      [116.401428, 39.91123], // 路径点3
-      // 可以动态添加更多的坐标点
+        // 绘制跑步路径
+         var path = [
+            [116.397428, 39.90923], // 路径点1
+            [116.399428, 39.91023], // 路径点2
+            [116.401428, 39.91123], // 路径点3
+        // 可以动态添加更多的坐标点
     ];
-  
+
     var polyline = new AMap.Polyline({
       path: path, // 设置路径
       strokeColor: "#0091EA", // 线条颜色
@@ -108,10 +60,8 @@
     });
   
     polyline.setMap(map); // 将路线绘制到地图上
-  </script>
-<script>
-    var path = [];  // 路径点
-  
+
+    // 动态更新路径
     function updateRoute(lat, lng) {
       path.push([lng, lat]);  // 将当前位置添加到路径中
       polyline.setPath(path); // 更新地图上的路径
@@ -125,4 +75,5 @@
       updateRoute(lat, lng);  // 更新路径
     }, 1000); // 每秒更新一次
   </script>
-      
+</body>
+</html>   
