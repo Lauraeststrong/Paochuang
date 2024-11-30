@@ -59,3 +59,37 @@
     </script>
 </body>
 </html>
+<script>
+    var map = new AMap.Map('container', {
+      resizeEnable: true,
+      center: [116.397428, 39.90923], // 初始位置设置为北京（或者任意其他位置）
+      zoom: 13
+    });
+  
+    // 创建定位控件
+    AMap.plugin('AMap.Geolocation', function() {
+      var geolocation = new AMap.Geolocation({
+        enableHighAccuracy: true, // 是否使用高精度定位
+        timeout: 10000,           // 设置超时时间，单位为毫秒
+        buttonPosition: 'LB',     // 定位按钮的显示位置
+      });
+      map.addControl(geolocation);
+  
+      // 获取当前位置并更新地图中心点
+      geolocation.getCurrentPosition(function(status, result) {
+        if (status === 'complete') {
+          // 更新地图中心点为当前位置
+          map.setCenter([result.position.lng, result.position.lat]);
+          
+          // 在地图上标记当前位置
+          var marker = new AMap.Marker({
+            position: [result.position.lng, result.position.lat], // 标记位置
+          });
+          marker.setMap(map);
+        } else {
+          console.error('定位失败：', result);
+        }
+      });
+    });
+  </script>
+  
