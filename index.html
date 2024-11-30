@@ -28,6 +28,22 @@
             center: [116.397428, 39.90923] // 默认中心点：北京天安门
         });
 
+        // 路径的数组
+        var path = [
+            [116.397428, 39.90923], // 路径点1
+            [116.399428, 39.91023], // 路径点2
+            [116.401428, 39.91123], // 路径点3
+        ];
+
+        // 绘制路径
+        var polyline = new AMap.Polyline({
+            path: path, // 设置路径
+            strokeColor: "#0091EA", // 线条颜色
+            strokeWeight: 6, // 线条宽度
+            strokeOpacity: 0.7, // 线条透明度
+        });
+        polyline.setMap(map); // 将路线绘制到地图上
+
         // 添加定位功能
         AMap.plugin('AMap.Geolocation', function () {
             var geolocation = new AMap.Geolocation({
@@ -36,44 +52,33 @@
                 position: 'RB' // 定位按钮的位置
             });
             map.addControl(geolocation);
+
+            // 获取当前位置
             geolocation.getCurrentPosition(function (status, result) {
                 if (status === 'complete') {
                     console.log('定位成功', result);
+
+                    // 更新地图中心点为当前位置
+                    map.setCenter([result.position.lng, result.position.lat]);
+
+                    // 在地图上标记当前位置
+                    var marker = new AMap.Marker({
+                        position: [result.position.lng, result.position.lat], // 标记当前位置
+                    });
+                    marker.setMap(map);
+
+                    // 动态更新路径
+                    setInterval(function () {
+                        var lat = result.position.lat;  // 获取实时纬度
+                        var lng = result.position.lng;  // 获取实时经度
+                        path.push([lng, lat]);  // 添加当前坐标到路径数组
+                        polyline.setPath(path); // 更新地图上的路径
+                    }, 1000); // 每秒更新一次路径
                 } else {
                     console.error('定位失败', result);
                 }
             });
         });
-        // 绘制跑步路径
-         var path = [
-            [116.397428, 39.90923], // 路径点1
-            [116.399428, 39.91023], // 路径点2
-            [116.401428, 39.91123], // 路径点3
-        // 可以动态添加更多的坐标点
-    ];
-
-    var polyline = new AMap.Polyline({
-      path: path, // 设置路径
-      strokeColor: "#0091EA", // 线条颜色
-      strokeWeight: 6, // 线条宽度
-      strokeOpacity: 0.7, // 线条透明度
-    });
-  
-    polyline.setMap(map); // 将路线绘制到地图上
-
-    // 动态更新路径
-    function updateRoute(lat, lng) {
-      path.push([lng, lat]);  // 将当前位置添加到路径中
-      polyline.setPath(path); // 更新地图上的路径
-    }
-  
-    // 假设你每秒钟获得一次用户位置
-    setInterval(function() {
-      // 假设 lat 和 lng 是从你的定位获取的
-      var lat = 39.91123; // 示例纬度
-      var lng = 116.401428; // 示例经度
-      updateRoute(lat, lng);  // 更新路径
-    }, 1000); // 每秒更新一次
-  </script>
+    </script>
 </body>
-</html>   
+</html>
