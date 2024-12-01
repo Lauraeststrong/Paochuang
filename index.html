@@ -75,37 +75,30 @@
                     // 更新地图中心点为当前位置
                     map.setCenter([result.position.lng, result.position.lat]);
 
+                    // 在地图上标记当前位置
+                    var marker = new AMap.Marker({
+                        position: [result.position.lng, result.position.lat], // 标记位置
+                    });
+                    marker.setMap(map);
+
                     // 将初始位置添加到路径
                     path.push([currentPosition.lng, currentPosition.lat]);
                     polyline.setPath(path);
+
+                    // 动态更新路径
+                    setInterval(function () {
+                        if (currentPosition) {
+                            var lat = currentPosition.lat;  // 获取实时纬度
+                            var lng = currentPosition.lng;  // 获取实时经度
+                            path.push([lng, lat]);  // 添加当前坐标到路径数组
+                            polyline.setPath(path); // 更新地图上的路径
+                        }
+                    }, 1000); // 每秒更新一次路径
                 } else {
                     console.error('定位失败', result);
-                }
-
-                    // 在地图上标记当前位置
-                    //var marker = new AMap.Marker({
-                        //position: [result.position.lng, result.position.lat], // 标记位置
-                    //});
-                    //marker.setMap(map);
-                //} else {
-                    //console.error('定位失败', result);
-                //}
+                }  
             });
         });
-
-        // 使用模拟用户移动（用于开发测试）
-        function startSimulation() {
-            setInterval(function () {
-                if (currentPosition) {
-                    currentPosition.lat += 0.0001;  // 模拟经度变化
-                    currentPosition.lng += 0.0001;  // 模拟纬度变化
-            
-                    // 将当前位置加入路径
-                    path.push([currentPosition.lng, currentPosition.lat]);
-                    polyline.setPath(path);  // 更新地图路径
-                }
-            }, 1000);  // 每秒更新一次路径
-        }
 
         // 跑步路径
         var path = [];
@@ -119,15 +112,7 @@
         });
         polyline.setMap(map);
 
-        // 动态更新路径
-        //setInterval(function () {
-            //if (currentPosition) {
-                //var lat = currentPosition.lat;  // 获取实时纬度
-                //var lng = currentPosition.lng;  // 获取实时经度
-                //path.push([lng, lat]);  // 添加当前坐标到路径数组
-                //polyline.setPath(path); // 更新地图上的路径
-            //}
-        //}, 1000); // 每秒更新一次路径
+        
     </script>
 </body>
 </html>
