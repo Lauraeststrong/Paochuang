@@ -66,31 +66,31 @@
         var currentPosition = null;
 
         // 定位并实时更新路径
-        AMap.plugin('AMap.Geolocation', function () {
-            var geolocation = new AMap.Geolocation({
-                enableHighAccuracy: true, // 使用高精度定位
-                timeout: 10000, // 超时时间
-                position: 'RB' // 定位按钮的位置
-            });
-            map.addControl(geolocation);
+        //AMap.plugin('AMap.Geolocation', function () {
+            //var geolocation = new AMap.Geolocation({
+                //enableHighAccuracy: true, // 使用高精度定位
+                //timeout: 10000, // 超时时间
+                //position: 'RB' // 定位按钮的位置
+            //});
+            //map.addControl(geolocation);
 
             // 实时监控定位
-            geolocation.watchPosition(function (status, result) {
-                if (status === 'complete') {
-                    var lat = result.position.lat;
-                    var lng = result.position.lng;
+            //geolocation.watchPosition(function (status, result) {
+                //if (status === 'complete') {
+                    //var lat = result.position.lat;
+                    //var lng = result.position.lng;
 
                     // 如果距离上次更新超过设定的间隔，才更新路径
-                    var currentTime = Date.now();
-                    if (currentTime - lastUpdateTime >= updateInterval) {
-                        updateRoute(lat, lng); // 更新路径
-                        lastUpdateTime = currentTime; // 更新上次更新时间
-                    }
-                } else {
-                    console.error('定位失败', result);
-                }
-            });   
-        });
+                    //var currentTime = Date.now();
+                    //if (currentTime - lastUpdateTime >= updateInterval) {
+                        //updateRoute(lat, lng); // 更新路径
+                        //lastUpdateTime = currentTime; // 更新上次更新时间
+                    //}
+                //} else {
+                    //console.error('定位失败', result);
+                //}
+            //});   
+        //});
 
         // 计算路径总距离并显示
         function calculateDistance() {
@@ -122,6 +122,7 @@
                     console.error('定位失败', result);
                 }
             });
+        })
     </script>
 </body>
 </html>
