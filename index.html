@@ -47,14 +47,14 @@
         });
 
         // 定义路径和绘制的多边形
-        //var path = []; // 保存用户轨迹的数组
-        //var polyline = new AMap.Polyline({
-            //path: path, // 初始为空路径
-            //strokeColor: "#0091EA", // 路径颜色
-            //strokeWeight: 6, // 线条宽度
-            //strokeOpacity: 0.7, // 透明度
-        //});
-        //polyline.setMap(map); // 添加到地图
+        var path = []; // 保存用户轨迹的数组
+        var polyline = new AMap.Polyline({
+            path: path, // 初始为空路径
+            strokeColor: "#0091EA", // 路径颜色
+            strokeWeight: 6, // 线条宽度
+            strokeOpacity: 0.7, // 透明度
+        });
+        polyline.setMap(map); // 添加到地图
 
         // 更新路径函数
         //function updateRoute(lat, lng) {
