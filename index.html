@@ -43,27 +43,27 @@
         });
 
         // 定义路径和绘制的多边形
-        var path = []; // 保存用户轨迹的数组
-        var polyline = new AMap.Polyline({
-            path: path, // 初始为空路径
-            strokeColor: "#0091EA", // 路径颜色
-            strokeWeight: 6, // 线条宽度
-            strokeOpacity: 0.7, // 透明度
-        });
-        polyline.setMap(map); // 添加到地图
+        //var path = []; // 保存用户轨迹的数组
+        //var polyline = new AMap.Polyline({
+            //path: path, // 初始为空路径
+            //strokeColor: "#0091EA", // 路径颜色
+            //strokeWeight: 6, // 线条宽度
+            //strokeOpacity: 0.7, // 透明度
+        //});
+        //polyline.setMap(map); // 添加到地图
 
         // 更新路径函数
-        function updateRoute(lat, lng) {
-            path.push([lng, lat]); // 新增点到路径
-            polyline.setPath(path); // 更新地图上的路径
-            calculateDistance(); // 计算并显示路径距离
-        }
+        //function updateRoute(lat, lng) {
+            //path.push([lng, lat]); // 新增点到路径
+            //polyline.setPath(path); // 更新地图上的路径
+            //calculateDistance(); // 计算并显示路径距离
+        //}
 
-        var lastUpdateTime = 0; // 上次更新的时间戳
-        var updateInterval = 1000; // 限频更新的间隔时间，单位是毫秒
+        //var lastUpdateTime = 0; // 上次更新的时间戳
+        //var updateInterval = 1000; // 限频更新的间隔时间，单位是毫秒
 
         // 保存用户当前位置
-        var currentPosition = null;
+        //var currentPosition = null;
 
         // 定位并实时更新路径
         //AMap.plugin('AMap.Geolocation', function () {
@@ -93,36 +93,36 @@
         //});
 
         // 计算路径总距离并显示
-        function calculateDistance() {
-            var totalDistance = 0;
-            for (var i = 1; i < path.length; i++) {
-                var pointA = path[i - 1];
-                var pointB = path[i];
-                var distance = AMap.GeometryUtil.distance(pointA, pointB); // 计算两点间的距离
-                totalDistance += distance; // 累加总距离
-            }
-            document.getElementById('distance').innerHTML = '距离: ' + (totalDistance / 1000).toFixed(2) + ' km'; // 显示总距离（单位：km）
-        }
+        //function calculateDistance() {
+            //var totalDistance = 0;
+            //for (var i = 1; i < path.length; i++) {
+                //var pointA = path[i - 1];
+                //var pointB = path[i];
+                //var distance = AMap.GeometryUtil.distance(pointA, pointB); // 计算两点间的距离
+                //totalDistance += distance; // 累加总距离
+            //}
+            //document.getElementById('distance').innerHTML = '距离: ' + (totalDistance / 1000).toFixed(2) + ' km'; // 显示总距离（单位：km）
+        //}
 
         // 初始路径自动添加第一个定位点
-        AMap.plugin('AMap.Geolocation', function () {
-            var geolocation = new AMap.Geolocation({
-                enableHighAccuracy: true,
-                timeout: 10000,
-                position: 'RB'
-            });
-            map.addControl(geolocation);
+        //AMap.plugin('AMap.Geolocation', function () {
+            //var geolocation = new AMap.Geolocation({
+                //enableHighAccuracy: true,
+                //timeout: 10000,
+                //position: 'RB'
+            //});
+            //map.addControl(geolocation);
 
-            geolocation.getCurrentPosition(function (status, result) {
-                if (status === 'complete') {
-                    var lat = result.position.lat;
-                    var lng = result.position.lng;
-                    updateRoute(lat, lng); // 初始路径更新
-                } else {
-                    console.error('定位失败', result);
-                }
-            });
-        })
+            //geolocation.getCurrentPosition(function (status, result) {
+                //if (status === 'complete') {
+                    //var lat = result.position.lat;
+                    //var lng = result.position.lng;
+                    //updateRoute(lat, lng); // 初始路径更新
+                //} else {
+                    //console.error('定位失败', result);
+                //}
+            //});
+        //})
     </script>
 </body>
 </html>
