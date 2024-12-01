@@ -3,15 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="font-src 'self' data: github.githubassets.com github.com;">
- 
     <title>High德地图</title>
     <!-- 引入高德地图 JS API -->
     <script src="https://webapi.amap.com/maps?v=2.0&key=5d85ca7ca6fdfbb78e9468a3c9d7ce09"></script>
-    
-</head>
-<body>
-
     <style>
         /* 设置地图容器样式 */
         #container {
@@ -21,23 +15,11 @@
             top: 0;
             left: 0;
         }
-        #distance {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 5px;
-            border-radius: 5px;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
     <!-- 地图容器 -->
     <div id="container"></div>
-    <!-- 显示路径信息的容器 -->
-    <div id="distance"></div>
-
 
     <script>
         // 初始化地图
@@ -46,97 +28,64 @@
             center: [116.397428, 39.90923] // 默认中心点：北京天安门
         });
 
-        // 定义路径和绘制的多边形
-        var path = []; // 保存用户轨迹的数组
-        var polyline = new AMap.Polyline({
-            path: path, // 初始为空路径
-            strokeColor: "#0091EA", // 路径颜色
-            strokeWeight: 6, // 线条宽度
-            strokeOpacity: 0.7, // 透明度
-        });
-        polyline.setMap(map); // 添加到地图
-
-        // 模拟位置更新
-        let lat = 39.90923; // 初始纬度（天安门）
-        let lng = 116.397428; // 初始经度（天安门）
-        setInterval(() => {
-            lat += 0.0001; // 模拟经纬度的微小变化
-            lng += 0.0001;
-            updateRoute(lat, lng); // 手动调用更新路径的函数
-        }, 2000); // 每2秒更新一次位置
-
-
-        // 更新路径函数
-        //function updateRoute(lat, lng) {
-            //path.push([lng, lat]); // 新增点到路径
-            //polyline.setPath(path); // 更新地图上的路径
-            //calculateDistance(); // 计算并显示路径距离
-        //}
-
-        //var lastUpdateTime = 0; // 上次更新的时间戳
-        //var updateInterval = 1000; // 限频更新的间隔时间，单位是毫秒
-
         // 保存用户当前位置
-        //var currentPosition = null;
+        var currentPosition = null;
 
-        // 定位并实时更新路径
-        //AMap.plugin('AMap.Geolocation', function () {
-            //var geolocation = new AMap.Geolocation({
-                //enableHighAccuracy: true, // 使用高精度定位
-                //timeout: 10000, // 超时时间
-                //position: 'RB' // 定位按钮的位置
-            //});
-            //map.addControl(geolocation);
+        // 添加定位功能
+        AMap.plugin('AMap.Geolocation', function () {
+            var geolocation = new AMap.Geolocation({
+                enableHighAccuracy: true, // 使用高精度定位
+                timeout: 10000, // 超时时间
+                position: 'RB' // 定位按钮的位置
+            });
+            map.addControl(geolocation);
 
-            // 实时监控定位
-            //geolocation.watchPosition(function (status, result) {
-                //if (status === 'complete') {
-                    //var lat = result.position.lat;
-                    //var lng = result.position.lng;
+            geolocation.getCurrentPosition(function (status, result) {
+                if (status === 'complete') {
+                    console.log('定位成功', result);
 
-                    // 如果距离上次更新超过设定的间隔，才更新路径
-                    //var currentTime = Date.now();
-                    //if (currentTime - lastUpdateTime >= updateInterval) {
-                        //updateRoute(lat, lng); // 更新路径
-                        //lastUpdateTime = currentTime; // 更新上次更新时间
-                    //}
-                //} else {
-                    //console.error('定位失败', result);
-                //}
-            //});   
-        //});
+                    // 保存当前位置
+                    currentPosition = result.position;
 
-        // 计算路径总距离并显示
-        //function calculateDistance() {
-            //var totalDistance = 0;
-            //for (var i = 1; i < path.length; i++) {
-                //var pointA = path[i - 1];
-                //var pointB = path[i];
-                //var distance = AMap.GeometryUtil.distance(pointA, pointB); // 计算两点间的距离
-                //totalDistance += distance; // 累加总距离
-            //}
-            //document.getElementById('distance').innerHTML = '距离: ' + (totalDistance / 1000).toFixed(2) + ' km'; // 显示总距离（单位：km）
-        //}
+                    // 更新地图中心点为当前位置
+                    map.setCenter([result.position.lng, result.position.lat]);
 
-        // 初始路径自动添加第一个定位点
-        //AMap.plugin('AMap.Geolocation', function () {
-            //var geolocation = new AMap.Geolocation({
-                //enableHighAccuracy: true,
-                //timeout: 10000,
-                //position: 'RB'
-            //});
-            //map.addControl(geolocation);
+                    // 在地图上标记当前位置
+                    var marker = new AMap.Marker({
+                        position: [result.position.lng, result.position.lat], // 标记位置
+                    });
+                    marker.setMap(map);
+                } else {
+                    console.error('定位失败', result);
+                }
+            });
+        });
 
-            //geolocation.getCurrentPosition(function (status, result) {
-                //if (status === 'complete') {
-                    //var lat = result.position.lat;
-                    //var lng = result.position.lng;
-                    //updateRoute(lat, lng); // 初始路径更新
-                //} else {
-                    //console.error('定位失败', result);
-                //}
-            //});
-        //})
+        // 跑步路径
+        var path = [
+            [116.397428, 39.90923], // 路径点1
+            [116.399428, 39.91023], // 路径点2
+            [116.401428, 39.91123], // 路径点3
+        ];
+
+        // 绘制路线
+        var polyline = new AMap.Polyline({
+            path: path, // 设置路径
+            strokeColor: "#0091EA", // 线条颜色
+            strokeWeight: 6, // 线条宽度
+            strokeOpacity: 0.7, // 线条透明度
+        });
+        polyline.setMap(map);
+
+        // 动态更新路径
+        setInterval(function () {
+            if (currentPosition) {
+                var lat = currentPosition.lat;  // 获取实时纬度
+                var lng = currentPosition.lng;  // 获取实时经度
+                path.push([lng, lat]);  // 添加当前坐标到路径数组
+                polyline.setPath(path); // 更新地图上的路径
+            }
+        }, 1000); // 每秒更新一次路径
     </script>
 </body>
 </html>
