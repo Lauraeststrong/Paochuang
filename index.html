@@ -56,6 +56,16 @@
         });
         polyline.setMap(map); // 添加到地图
 
+        // 模拟位置更新
+        let lat = 39.90923; // 初始纬度（天安门）
+        let lng = 116.397428; // 初始经度（天安门）
+        setInterval(() => {
+            lat += 0.0001; // 模拟经纬度的微小变化
+            lng += 0.0001;
+            updateRoute(lat, lng); // 手动调用更新路径的函数
+        }, 2000); // 每2秒更新一次位置
+
+
         // 更新路径函数
         //function updateRoute(lat, lng) {
             //path.push([lng, lat]); // 新增点到路径
