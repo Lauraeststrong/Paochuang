@@ -144,6 +144,30 @@
         }
     });
 
+    window.addEventListener("message", function(event) {
+        var message = event.data;  // 获取消息内容
+        if (message === "start") {
+            startTracking();  // 调用开始追踪的函数
+        } else if (message === "pause") {
+            pauseTracking();  // 调用暂停追踪的函数
+        } else if (message === "stop") {
+            stopTracking();  // 调用停止追踪的函数
+        }
+    });
+
+    function startTracking() {
+        console.log("开始追踪");// 开始追踪的相关代码
+    }
+
+    function pauseTracking() {
+        console.log("暂停追踪"); // 暂停追踪的相关代码
+    }
+
+    function stopTracking() {
+        console.log("停止追踪"); // 停止追踪的相关代码
+    }
+
+
     // 初始化变量
     var isDrawing = false; // 控制是否绘制路径
     var intervalID = null; // 保存定时器 ID，用于暂停和停止
