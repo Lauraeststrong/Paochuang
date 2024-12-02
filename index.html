@@ -16,12 +16,7 @@
 <body>
     <!-- 地图容器 -->
     <div id="container"></div>
-    <div class="control-panel">
-        <button id="startBtn">开始绘制</button>
-        <button id="pauseBtn" disabled>暂停绘制</button>
-        <button id="endBtn" disabled>结束绘制</button>
-    </div>
-
+    
     <script>
         // 初始化地图
         var map = new AMap.Map('container', {
@@ -137,6 +132,17 @@
             document.getElementById('startBtn').disabled = false;
             document.getElementById('pauseBtn').disabled = true;
         });
+
+    // 监听来自 Web Viewer 的消息
+    window.addEventListener("message", function (event) {
+        if (event.data === "start") {
+            startDrawing(); // 开始绘制
+        } else if (event.data === "pause") {
+            pauseDrawing(); // 暂停绘制
+        } else if (event.data === "end") {
+            endDrawing(); // 结束绘制
+        }
+    });
 
     // 初始化变量
     var isDrawing = false; // 控制是否绘制路径
