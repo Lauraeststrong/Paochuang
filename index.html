@@ -8,18 +8,19 @@
     <script src="https://webapi.amap.com/maps?v=2.0&key=5d85ca7ca6fdfbb78e9468a3c9d7ce09"></script>
     <style>
         /* 设置地图容器样式 */
-        #container {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
+        #container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        .control-panel { position: absolute; top: 10px; left: 10px; z-index: 1000; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .control-panel button { margin: 5px; padding: 10px; }
     </style>
 </head>
 <body>
     <!-- 地图容器 -->
     <div id="container"></div>
+    <div class="control-panel">
+        <button id="startBtn">开始绘制</button>
+        <button id="pauseBtn" disabled>暂停绘制</button>
+        <button id="endBtn" disabled>结束绘制</button>
+    </div>
 
     <script>
         // 初始化地图
@@ -27,6 +28,9 @@
             zoom: 15, // 地图缩放级别
             //center: [116.397428, 39.90923] // 默认中心点：北京天安门
         });
+
+        // 保存用户当前位置
+        var currentPosition = null;
 
         // 路径数组，用于存储跑步轨迹
         var path = [];
@@ -36,12 +40,13 @@
             path: path, // 设置路径
             strokeColor: "#FF0000", // 动态路径，红色
             strokeWeight: 6, // 线条宽度
-            strokeOpacity: 0.9, // 线条透明度
+            strokeOpacity: 0.7, // 线条透明度
         });
         polyline.setMap(map);
 
-        // 保存用户当前位置
-        var currentPosition = null;
+        var marker = null; // 标记用户位置
+        var geolocation = null; // 定位插件
+        var isTracking = false; // 是否正在绘制路径
 
         // 添加定位功能
         AMap.plugin('AMap.Geolocation', function () {
@@ -49,51 +54,35 @@
                 enableHighAccuracy: true, // 使用高精度定位
                 timeout: 10000, // 超时时间
                 position: 'RB',// 定位按钮的位置
-                showCircle: true,  // 隐藏定位精度圆
-                showMarker: true, // 不显示默认定位图标
-
+                showCircle: false,  // 隐藏定位精度圆
+                showMarker: false, // 不显示默认定位图标
+                isConverted: true,
             });
             map.addControl(geolocation);
 
             geolocation.getCurrentPosition(function (status, result) {
                 if (status === 'complete') {
+                    console.log('定位成功', result);
                     currentPosition = result.position;
-                    map.setCenter([currentPosition.lng, currentPosition.lat]);
+                    map.setCenter([currentPosition.lng, currentPosition.lat]); // 更新地图中心点
 
                     // 将当前位置作为动态路径起点
                     path.push([currentPosition.lng, currentPosition.lat]);
                     polyline.setPath(path);
-                    
-                    console.log('定位成功', result);
-
-                    // 保存当前位置
-                    currentPosition = result.position;
-
-                    // 更新地图中心点为当前位置
-                    map.setCenter([result.position.lng, result.position.lat]);
-
-                    // 在地图上标记当前位置
-                    var marker = new AMap.Marker({
-                        position: [result.position.lng, result.position.lat], // 标记位置
-                    });
-                    marker.setMap(map);
-
-                    // 将初始位置添加到路径
-                    path.push([currentPosition.lng, currentPosition.lat]);
-                    polyline.setPath(path);
-
-                    // 动态更新路径
-                    setInterval(function () {
-                        if (currentPosition) {
-                            var lat = currentPosition.lat;  // 获取实时纬度
-                            var lng = currentPosition.lng;  // 获取实时经度
-                            path.push([lng, lat]);  // 添加当前坐标到路径数组
-                            polyline.setPath(path); // 更新地图上的路径
-                        }
-                    }, 1000); // 每秒更新一次路径
                 } else {
                     console.error('定位失败', result);
                 }  
+            });
+
+            // 实时监听定位变化（用于动态更新路径）
+            geolocation.watchPosition(function (status, result) {
+                if (status === 'complete') {
+                    currentPosition = result.position;
+
+                    // 添加当前位置到路径数组并更新地图
+                    path.push([currentPosition.lng, currentPosition.lat]);
+                    polyline.setPath(path);
+                }
             });
         });
         
