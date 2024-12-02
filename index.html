@@ -106,6 +106,71 @@
             polyline.setPath(path);
         }
 
+        // 按钮控制
+        document.getElementById('startBtn').addEventListener('click', function () {
+            isTracking = true;
+            geolocation.getCurrentPosition(function (status, result) {
+                if (status === 'complete') {
+                    map.setCenter([result.position.lng, result.position.lat]);
+                    updateMarkerAndPath(result.position);
+                }
+            });
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('endBtn').disabled = false;
+            this.disabled = true;
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', function () {
+            isTracking = false;
+            this.disabled = true;
+            document.getElementById('startBtn').disabled = false;
+        });
+
+        document.getElementById('endBtn').addEventListener('click', function () {
+            isTracking = false;
+            path = [];
+            polyline.setPath(path);
+            if (marker) marker.setMap(null);
+            marker = null;
+            currentPosition = null;
+            this.disabled = true;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+        });
+
+    // 初始化变量
+    var isDrawing = false; // 控制是否绘制路径
+    var intervalID = null; // 保存定时器 ID，用于暂停和停止
+
+    // 开始绘制
+    function startDrawing() {
+        if (isDrawing) return; // 防止重复启动
+        isDrawing = true;
+
+        intervalID = setInterval(function () {
+            if (currentPosition) {
+                path.push([currentPosition.lng, currentPosition.lat]); // 添加当前位置到路径
+                polyline.setPath(path); // 更新路径
+            }
+        }, 1000); // 每秒更新一次
+    }
+
+    // 暂停绘制
+    function pauseDrawing() {
+        isDrawing = false;
+        if (intervalID) {
+            clearInterval(intervalID); // 清除定时器
+            intervalID = null;
+        }
+    }
+
+    // 结束绘制
+    function endDrawing() {
+        pauseDrawing(); // 首先暂停
+        path = []; // 清空路径
+        polyline.setPath(path); // 清空地图上的路径
+    }
+
     </script>
 </body>
 </html>
