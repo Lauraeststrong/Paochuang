@@ -16,6 +16,12 @@
 <body>
     <!-- 地图容器 -->
     <div id="container"></div>
+
+    <div class="control-panel">
+        <button id="startBtn">开始</button>
+        <button id="pauseBtn" disabled>暂停</button>
+        <button id="endBtn" disabled>结束</button>
+    </div>
     
     <script>
         // 初始化地图
@@ -101,49 +107,8 @@
             polyline.setPath(path);
         }
 
-        // 按钮控制
-        document.getElementById('startBtn').addEventListener('click', function () {
-            isTracking = true;
-            geolocation.getCurrentPosition(function (status, result) {
-                if (status === 'complete') {
-                    map.setCenter([result.position.lng, result.position.lat]);
-                    updateMarkerAndPath(result.position);
-                }
-            });
-            document.getElementById('pauseBtn').disabled = false;
-            document.getElementById('endBtn').disabled = false;
-            this.disabled = true;
-        });
-
-        document.getElementById('pauseBtn').addEventListener('click', function () {
-            isTracking = false;
-            this.disabled = true;
-            document.getElementById('startBtn').disabled = false;
-        });
-
-        document.getElementById('endBtn').addEventListener('click', function () {
-            isTracking = false;
-            path = [];
-            polyline.setPath(path);
-            if (marker) marker.setMap(null);
-            marker = null;
-            currentPosition = null;
-            this.disabled = true;
-            document.getElementById('startBtn').disabled = false;
-            document.getElementById('pauseBtn').disabled = true;
-        });
 
     // 监听来自 Web Viewer 的消息
-    window.addEventListener("message", function (event) {
-        if (event.data === "start") {
-            startDrawing(); // 开始绘制
-        } else if (event.data === "pause") {
-            pauseDrawing(); // 暂停绘制
-        } else if (event.data === "end") {
-            endDrawing(); // 结束绘制
-        }
-    });
-
     window.addEventListener("message", function(event) {
         var message = event.data;  // 获取消息内容
         if (message === "start") {
@@ -201,6 +166,37 @@
         polyline.setPath(path); // 清空地图上的路径
     }
 
+        // 按钮控制
+        document.getElementById('startBtn').addEventListener('click', function () {
+            isTracking = true;
+            geolocation.getCurrentPosition(function (status, result) {
+                if (status === 'complete') {
+                    map.setCenter([result.position.lng, result.position.lat]);
+                    updateMarkerAndPath(result.position);
+                }
+            });
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('endBtn').disabled = false;
+            this.disabled = true;
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', function () {
+            isTracking = false;
+            this.disabled = true;
+            document.getElementById('startBtn').disabled = false;
+        });
+
+        document.getElementById('endBtn').addEventListener('click', function () {
+            isTracking = false;
+            path = [];
+            polyline.setPath(path);
+            if (marker) marker.setMap(null);
+            marker = null;
+            currentPosition = null;
+            this.disabled = true;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+        });
     </script>
 </body>
 </html>
