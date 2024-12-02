@@ -31,12 +31,12 @@
         // 路径数组，用于存储跑步轨迹
         var path = [];
 
-        // 初始化路径绘制
+        // 绘制路线
         var polyline = new AMap.Polyline({
-            path: path, // 初始路径为空
-            strokeColor: "#0091EA", // 线条颜色
+            path: path, // 设置路径
+            strokeColor: "#FF0000", // 动态路径，红色
             strokeWeight: 6, // 线条宽度
-            strokeOpacity: 0.7, // 线条透明度
+            strokeOpacity: 0.9, // 线条透明度
         });
         polyline.setMap(map);
 
@@ -49,8 +49,8 @@
                 enableHighAccuracy: true, // 使用高精度定位
                 timeout: 10000, // 超时时间
                 position: 'RB',// 定位按钮的位置
-                showCircle: false,  // 隐藏定位精度圆
-                showMarker: false, // 不显示默认定位图标
+                showCircle: true,  // 隐藏定位精度圆
+                showMarker: true, // 不显示默认定位图标
 
             });
             map.addControl(geolocation);
@@ -96,19 +96,6 @@
                 }  
             });
         });
-
-        // 跑步路径
-        var path = [];
-
-        // 绘制路线
-        var polyline = new AMap.Polyline({
-            path: path, // 设置路径
-            strokeColor: "#FF0000", // 动态路径，红色
-            strokeWeight: 6, // 线条宽度
-            strokeOpacity: 0.9, // 线条透明度
-        });
-        polyline.setMap(map);
-
         
     </script>
 </body>
