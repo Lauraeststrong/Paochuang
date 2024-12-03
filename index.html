@@ -8,7 +8,7 @@
     <script src="https://webapi.amap.com/maps?v=2.0&key=5d85ca7ca6fdfbb78e9468a3c9d7ce09"></script>
     <style>
         /* 设置地图容器样式 */
-        #container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        #container { width: 100%; height: 100%; max-height: 90vh; /* 限制最大高度，避免横屏问题 */position: absolute; top: 0; left: 0; }
         .control-panel { position: absolute; top: 10px; left: 10px; z-index: 1000; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .control-panel button { margin: 5px; padding: 10px; }
     </style>
@@ -16,25 +16,15 @@
 <body>
     <!-- 地图容器 -->
     <div id="container"></div>
-
-    <div class="control-panel">
-        <button id="startBtn">开始</button>
-        <button id="pauseBtn" disabled>暂停</button>
-        <button id="endBtn" disabled>结束</button>
-    </div>
     
     <script>
-        // 初始化地图
+        // 1初始化地图
         var map = new AMap.Map('container', {
             zoom: 15, // 地图缩放级别
-            //center: [116.397428, 39.90923] // 默认中心点：北京天安门
         });
 
-        // 保存用户当前位置
-        var currentPosition = null;
-
-        // 路径数组，用于存储跑步轨迹
-        var path = [];
+        // 2路径绘制对象
+        var path = []; // 路径数组，用于存储跑步轨迹
 
         // 绘制路线
         var polyline = new AMap.Polyline({
@@ -47,16 +37,17 @@
 
         var marker = null; // 标记用户位置
         var geolocation = null; // 定位插件
-        var isTracking = false; // 是否正在绘制路径
 
+        // 3用户定位与动态路径更新
+        var currentPosition = null; // 保存用户当前位置
         // 添加定位功能
         AMap.plugin('AMap.Geolocation', function () {
             var geolocation = new AMap.Geolocation({
                 enableHighAccuracy: true, // 使用高精度定位
                 timeout: 10000, // 超时时间
                 position: 'RB',// 定位按钮的位置
-                showCircle: false,  // 隐藏定位精度圆
-                showMarker: false, // 不显示默认定位图标
+                showCircle: true,  // 显示定位精度圆
+                showMarker: true, // 显示默认定位图标
                 isConverted: true, // 解决用户实际位置偏离
             });
             map.addControl(geolocation);
@@ -66,9 +57,7 @@
                     console.log('定位成功', result);
                     currentPosition = result.position;
                     map.setCenter([currentPosition.lng, currentPosition.lat]); // 更新地图中心点
-
-                    // 将当前位置作为动态路径起点
-                    path.push([currentPosition.lng, currentPosition.lat]);
+                    path.push([currentPosition.lng, currentPosition.lat]); // 将当前位置作为动态路径起点
                     polyline.setPath(path);
                 } else {
                     console.error('定位失败', result);
@@ -79,19 +68,31 @@
             // geolocation.watchPosition(function (status, result) {
                 //if (status === 'complete') {
                     //currentPosition = result.position;
+                    //path.push([currentPosition.lng, currentPosition.lat]);
+                    //polyline.setPath(path);
+                //}
+            //});
 
             // 实时监听位置变化
             geolocation.watchPosition(function (status, result) {
-                if (status === 'complete' && isTracking) {
+                if (status === 'complete' && isDrawing) {
                     currentPosition = result.position;
                     updateMarkerAndPath(result.position);
-
-                    // 添加当前位置到路径数组并更新地图
-                    path.push([currentPosition.lng, currentPosition.lat]);
+                    path.push([currentPosition.lng, currentPosition.lat]); // 添加当前位置到路径数组并更新地图
                     polyline.setPath(path);
                 }
             });
         });
+
+        // 4标记用户位置
+        if (!marker) {
+            marker = new AMap.Marker({
+                position: [position.lng, position.lat],
+            });
+            marker.setMap(map);
+        } else {
+            marker.setPosition([position.lng, position.lat]);
+        }
 
         // 更新标记和路径
         function updateMarkerAndPath(position) {
@@ -108,7 +109,7 @@
         }
 
 
-    // 监听来自 Web Viewer 的消息
+    // 5监听来自 Web Viewer 的消息
     window.addEventListener("message", function(event) {
         var message = event.data;  // 获取消息内容
         if (message === "start") {
@@ -132,7 +133,7 @@
         console.log("停止追踪"); // 停止追踪的相关代码
     }
 
-
+    // 6路径绘制逻辑
     // 初始化变量
     var isDrawing = false; // 控制是否绘制路径
     var intervalID = null; // 保存定时器 ID，用于暂停和停止
@@ -166,37 +167,6 @@
         polyline.setPath(path); // 清空地图上的路径
     }
 
-        // 按钮控制
-        document.getElementById('startBtn').addEventListener('click', function () {
-            isTracking = true;
-            geolocation.getCurrentPosition(function (status, result) {
-                if (status === 'complete') {
-                    map.setCenter([result.position.lng, result.position.lat]);
-                    updateMarkerAndPath(result.position);
-                }
-            });
-            document.getElementById('pauseBtn').disabled = false;
-            document.getElementById('endBtn').disabled = false;
-            this.disabled = true;
-        });
-
-        document.getElementById('pauseBtn').addEventListener('click', function () {
-            isTracking = false;
-            this.disabled = true;
-            document.getElementById('startBtn').disabled = false;
-        });
-
-        document.getElementById('endBtn').addEventListener('click', function () {
-            isTracking = false;
-            path = [];
-            polyline.setPath(path);
-            if (marker) marker.setMap(null);
-            marker = null;
-            currentPosition = null;
-            this.disabled = true;
-            document.getElementById('startBtn').disabled = false;
-            document.getElementById('pauseBtn').disabled = true;
-        });
     </script>
 </body>
 </html>
