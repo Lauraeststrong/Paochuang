@@ -7,166 +7,136 @@
     <!-- 引入高德地图 JS API -->
     <script src="https://webapi.amap.com/maps?v=2.0&key=5d85ca7ca6fdfbb78e9468a3c9d7ce09"></script>
     <style>
-        /* 设置地图容器样式 */
-        #container { width: 100%; height: 100%; max-height: 90vh; /* 限制最大高度，避免横屏问题 */position: absolute; top: 0; left: 0; }
-        .control-panel { position: absolute; top: 10px; left: 10px; z-index: 1000; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .control-panel button { margin: 5px; padding: 10px; }
+        #container { 
+            width: 100%; 
+            height: 100%; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+        }
     </style>
 </head>
 <body>
-    <!-- 地图容器 -->
     <div id="container"></div>
-    
+
     <script>
-        // 1初始化地图
-        var map = new AMap.Map('container', {
-            zoom: 15, // 地图缩放级别
-        });
+        // 全局变量初始化
+        var map, currentPosition = null, path = [], polyline, marker, geolocation, isDrawing = false, intervalID = null;
 
-        // 2路径绘制对象
-        var path = []; // 路径数组，用于存储跑步轨迹
-
-        // 绘制路线
-        var polyline = new AMap.Polyline({
-            path: path, // 设置路径
-            strokeColor: "#FF0000", // 动态路径，红色
-            strokeWeight: 6, // 线条宽度
-            strokeOpacity: 0.7, // 线条透明度
-        });
-        polyline.setMap(map);
-
-        var marker = null; // 标记用户位置
-        var geolocation = null; // 定位插件
-
-        // 3用户定位与动态路径更新
-        var currentPosition = null; // 保存用户当前位置
-        // 添加定位功能
-        AMap.plugin('AMap.Geolocation', function () {
-            var geolocation = new AMap.Geolocation({
-                enableHighAccuracy: true, // 使用高精度定位
-                timeout: 10000, // 超时时间
-                position: 'RB',// 定位按钮的位置
-                showCircle: true,  // 显示定位精度圆
-                showMarker: true, // 显示默认定位图标
-                isConverted: true, // 解决用户实际位置偏离
-            });
-            map.addControl(geolocation);
-
-            geolocation.getCurrentPosition(function (status, result) {
-                if (status === 'complete') {
-                    console.log('定位成功', result);
-                    currentPosition = result.position;
-                    map.setCenter([currentPosition.lng, currentPosition.lat]); // 更新地图中心点
-                    path.push([currentPosition.lng, currentPosition.lat]); // 将当前位置作为动态路径起点
-                    polyline.setPath(path);
-                } else {
-                    console.error('定位失败', result);
-                }  
+        // 初始化地图
+        function initializeMap() {
+            map = new AMap.Map('container', {
+                zoom: 15 // 地图缩放级别
             });
 
-            // 实时监听定位变化（用于动态更新路径）-能用
-            // geolocation.watchPosition(function (status, result) {
-                //if (status === 'complete') {
-                    //currentPosition = result.position;
-                    //path.push([currentPosition.lng, currentPosition.lat]);
-                    //polyline.setPath(path);
-                //}
-            //});
-
-            // 实时监听位置变化
-            geolocation.watchPosition(function (status, result) {
-                if (status === 'complete' && isDrawing) {
-                    currentPosition = result.position;
-                    updateMarkerAndPath(result.position);
-                    path.push([currentPosition.lng, currentPosition.lat]); // 添加当前位置到路径数组并更新地图
-                    polyline.setPath(path);
-                }
+            // 初始化路径绘制
+            polyline = new AMap.Polyline({
+                path: path, // 初始路径为空
+                strokeColor: "#FF0000", // 路径颜色
+                strokeWeight: 6, // 线条宽度
+                strokeOpacity: 0.7, // 透明度
             });
-        });
-
-        // 4标记用户位置
-        if (!marker) {
-            marker = new AMap.Marker({
-                position: [position.lng, position.lat],
-            });
-            marker.setMap(map);
-        } else {
-            marker.setPosition([position.lng, position.lat]);
+            polyline.setMap(map);
         }
 
-        // 更新标记和路径
-        function updateMarkerAndPath(position) {
+        // 初始化定位功能
+        function initializeGeolocation() {
+            AMap.plugin('AMap.Geolocation', function () {
+                geolocation = new AMap.Geolocation({
+                    enableHighAccuracy: true, // 使用高精度定位
+                    timeout: 10000, // 超时时间
+                    position: 'RB', // 定位按钮位置
+                    showCircle: false, // 隐藏定位精度圆
+                    showMarker: false, // 不显示默认定位图标
+                    isConverted: true, // 修正定位偏差
+                });
+                map.addControl(geolocation);
+
+                // 获取初始位置
+                geolocation.getCurrentPosition(function (status, result) {
+                    if (status === 'complete') {
+                        handleLocationUpdate(result.position);
+                    } else {
+                        console.error('初始定位失败', result);
+                    }
+                });
+
+                // 监听位置变化
+                geolocation.watchPosition(function (status, result) {
+                    if (status === 'complete' && isDrawing) {
+                        handleLocationUpdate(result.position);
+                    }
+                });
+            });
+        }
+
+        // 处理位置更新
+        function handleLocationUpdate(position) {
+            currentPosition = position;
+
+            // 更新地图中心点
+            map.setCenter([currentPosition.lng, currentPosition.lat]);
+
+            // 在地图上标记当前位置
             if (!marker) {
                 marker = new AMap.Marker({
-                    position: [position.lng, position.lat],
+                    position: [currentPosition.lng, currentPosition.lat],
                 });
                 marker.setMap(map);
             } else {
-                marker.setPosition([position.lng, position.lat]);
+                marker.setPosition([currentPosition.lng, currentPosition.lat]);
             }
-            path.push([position.lng, position.lat]);
+
+            // 添加当前位置到路径并更新地图
+            path.push([currentPosition.lng, currentPosition.lat]);
             polyline.setPath(path);
         }
 
+        // 开始绘制路径
+        function startDrawing() {
+            if (isDrawing) return; // 防止重复启动
+            isDrawing = true;
 
-    // 5监听来自 Web Viewer 的消息
-    window.addEventListener("message", function(event) {
-        var message = event.data;  // 获取消息内容
-        if (message === "start") {
-            startTracking();  // 调用开始追踪的函数
-        } else if (message === "pause") {
-            pauseTracking();  // 调用暂停追踪的函数
-        } else if (message === "stop") {
-            stopTracking();  // 调用停止追踪的函数
+            // 每秒更新路径
+            intervalID = setInterval(function () {
+                if (currentPosition) {
+                    path.push([currentPosition.lng, currentPosition.lat]);
+                    polyline.setPath(path);
+                }
+            }, 1000);
         }
-    });
 
-    function startTracking() {
-        console.log("开始追踪");// 开始追踪的相关代码
-    }
-
-    function pauseTracking() {
-        console.log("暂停追踪"); // 暂停追踪的相关代码
-    }
-
-    function stopTracking() {
-        console.log("停止追踪"); // 停止追踪的相关代码
-    }
-
-    // 6路径绘制逻辑
-    // 初始化变量
-    var isDrawing = false; // 控制是否绘制路径
-    var intervalID = null; // 保存定时器 ID，用于暂停和停止
-
-    // 开始绘制
-    function startDrawing() {
-        if (isDrawing) return; // 防止重复启动
-        isDrawing = true;
-
-        intervalID = setInterval(function () {
-            if (currentPosition) {
-                path.push([currentPosition.lng, currentPosition.lat]); // 添加当前位置到路径
-                polyline.setPath(path); // 更新路径
+        // 暂停绘制路径
+        function pauseDrawing() {
+            isDrawing = false;
+            if (intervalID) {
+                clearInterval(intervalID); // 停止定时器
+                intervalID = null;
             }
-        }, 1000); // 每秒更新一次
-    }
-
-    // 暂停绘制
-    function pauseDrawing() {
-        isDrawing = false;
-        if (intervalID) {
-            clearInterval(intervalID); // 清除定时器
-            intervalID = null;
         }
-    }
 
-    // 结束绘制
-    function endDrawing() {
-        pauseDrawing(); // 首先暂停
-        path = []; // 清空路径
-        polyline.setPath(path); // 清空地图上的路径
-    }
+        // 结束绘制路径
+        function endDrawing() {
+            pauseDrawing(); // 停止绘制
+            path = []; // 清空路径
+            polyline.setPath(path); // 更新地图
+        }
 
+        // 监听来自 Thunkable Web Viewer 的消息
+        window.addEventListener("message", function (event) {
+            var message = event.data;  // 获取消息内容
+            if (message === "start") {
+                startDrawing();  // 开始绘制路径
+            } else if (message === "pause") {
+                pauseDrawing();  // 暂停绘制路径
+            } else if (message === "end") {
+                endDrawing();  // 结束绘制路径
+            }
+        });
+
+        // 初始化地图和定位
+        initializeMap();
+        initializeGeolocation();
     </script>
 </body>
 </html>
