@@ -3,19 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>选择图案</title>
+    <title>选择图案跑步路线</title>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=5d85ca7ca6fdfbb78e9468a3c9d7ce09"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            width: 100%;
+            height: 60%;
+        }
+        .controls {
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .controls label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .controls input, .controls select, .controls button {
+            margin-bottom: 15px;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .route-option {
+            border: 1px solid #ccc;
+            margin: 10px 0;
+            padding: 10px;
+            cursor: pointer;
+        }
+        .route-option:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
 </head>
 <body>
-    <h1>选择希望绘制的图案</h1>
-    <button onclick="selectPattern('triangle')">三角形</button>
-    <button onclick="selectPattern('heart')">心形</button>
+    <!-- 地图容器 -->
+    <div id="map"></div>
+
+    <!-- 用户输入 -->
+    <div class="controls">
+        <label for="distance">跑步距离 (km):</label>
+        <input type="number" id="distance" placeholder="例如：5">
+
+        <label for="pattern">选择跑步图案:</label>
+        <select id="pattern">
+            <option value="heart">心形</option>
+            <option value="star">星形</option>
+            <option value="circle">圆形</option>
+            <option value="custom">自定义文字</option>
+        </select>
+
+        <button id="generate">生成路线</button>
+        <div id="route-options"></div>
+    </div>
 
     <script>
-        function selectPattern(pattern) {
-            // 将选择的图案存储到本地
-            localStorage.setItem('selectedPattern', pattern);
-            // 跳转到地图页面
-            window.location.href = 'map.html';
+        const map = new AMap.Map('map', { zoom: 15 });
+        let currentPosition = null;
+
+        // 定位用户
+        AMap.plugin('AMap.Geolocation', () => {
+            const geolocation = new AMap.Geolocation();
+            map.addControl(geolocation);
+            geolocation.getCurrentPosition((status, result) => {
+                if (status === 'complete') {
+                    currentPosition = result.position;
+                    map.setCenter([currentPosition.lng, currentPosition.lat]);
+                    console.log('定位成功:', currentPosition);
+                } else {
+                    alert('定位失败，请检查网络或GPS设置');
+                }
+            });
+        });
+
+        // 点击生成路线
+        document.getElementById('generate').addEventListener('click', () => {
+            const distance = document.getElementById('distance').value;
+            const pattern = document.getElementById('pattern').value;
+
+            if (!distance || !currentPosition) {
+                alert('请输入跑步距离，并确保定位成功！');
+                return;
+            }
+
+            console.log(`生成路线: 图案=${pattern}, 距离=${distance}km`);
+            generateRoutes(pattern, distance);
+        });
+
+        // 模拟生成推荐路线
+        function generateRoutes(pattern, distance) {
+            const optionsDiv = document.getElementById('route-options');
+            optionsDiv.innerHTML = '';
+
+            // 模拟生成3条推荐路线
+            for (let i = 1; i <= 3; i++) {
+                const routeDiv = document.createElement('div');
+                routeDiv.classList.add('route-option');
+                routeDiv.innerText = `${pattern} 图案路线 ${i} (${distance}km)`;
+                routeDiv.addEventListener('click', () => {
+                    alert(`选择了 ${pattern} 图案路线 ${i}`);
+                    // 跳转到地图页面
+                    window.location.href = `map.html?pattern=${pattern}&route=${i}`;
+                });
+                optionsDiv.appendChild(routeDiv);
+            }
         }
     </script>
 </body>
