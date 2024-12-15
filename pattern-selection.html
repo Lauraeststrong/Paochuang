@@ -138,6 +138,9 @@
             const distance = parseFloat(document.getElementById('distance').value);
             const pattern = document.getElementById('pattern').value;
 
+            console.log('输入的跑步距离:', distance);
+            console.log('选择的图案:', pattern);
+
             if (!distance || distance <= 0) {
                 alert('请输入有效的跑步距离');
                 return;
