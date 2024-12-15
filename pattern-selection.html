@@ -13,7 +13,7 @@
         }
         #map {
             width: 100%;
-            height: 60%;
+            height: 70%;
         }
         .controls {
             padding: 20px;
@@ -29,14 +29,14 @@
             padding: 10px;
             font-size: 16px;
         }
-        .route-option {
-            border: 1px solid #ccc;
-            margin: 10px 0;
-            padding: 10px;
+        .preview-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
             cursor: pointer;
         }
-        .route-option:hover {
-            background-color: #e0e0e0;
+        .preview-btn:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
@@ -54,64 +54,110 @@
             <option value="heart">心形</option>
             <option value="star">星形</option>
             <option value="circle">圆形</option>
-            <option value="custom">自定义文字</option>
         </select>
 
-        <button id="generate">生成路线</button>
-        <div id="route-options"></div>
+        <button id="preview" class="preview-btn">预览图案</button>
+        <button id="confirm" class="preview-btn" disabled>确认并跳转</button>
     </div>
 
     <script>
-        const map = new AMap.Map('map', { zoom: 15 });
-        let currentPosition = null;
+        // 1. 初始化地图
+        const map = new AMap.Map('map', {
+            zoom: 15,
+            center: [116.397428, 39.90923] // 默认中心点：北京
+        });
 
-        // 定位用户
+        // 2. 监听用户定位
         AMap.plugin('AMap.Geolocation', () => {
-            const geolocation = new AMap.Geolocation();
+            const geolocation = new AMap.Geolocation({
+                enableHighAccuracy: true,
+                timeout: 10000
+            });
             map.addControl(geolocation);
             geolocation.getCurrentPosition((status, result) => {
                 if (status === 'complete') {
-                    currentPosition = result.position;
-                    map.setCenter([currentPosition.lng, currentPosition.lat]);
-                    console.log('定位成功:', currentPosition);
+                    console.log('定位成功:', result.position);
+                    map.setCenter([result.position.lng, result.position.lat]);
                 } else {
                     alert('定位失败，请检查网络或GPS设置');
                 }
             });
         });
 
-        // 点击生成路线
-        document.getElementById('generate').addEventListener('click', () => {
-            const distance = document.getElementById('distance').value;
+        // 3. 简单图案生成逻辑
+        function generatePath(center, pattern, distance) {
+            const paths = [];
+            const radius = distance * 100; // 距离转换为地图单位（米）
+
+            if (pattern === 'heart') {
+                // 心形图案
+                for (let i = 0; i <= 360; i += 10) {
+                    const angle = (Math.PI / 180) * i;
+                    const x = center[0] + radius * Math.sin(angle) * Math.cos(angle);
+                    const y = center[1] + radius * Math.sin(angle);
+                    paths.push([x, y]);
+                }
+            } else if (pattern === 'star') {
+                // 星形图案
+                const numPoints = 5; // 星形顶点数
+                for (let i = 0; i <= 360; i += 360 / (numPoints * 2)) {
+                    const angle = (Math.PI / 180) * i;
+                    const r = (i % 72 === 0) ? radius : radius / 2; // 大小半径交替
+                    const x = center[0] + r * Math.cos(angle);
+                    const y = center[1] + r * Math.sin(angle);
+                    paths.push([x, y]);
+                }
+            } else if (pattern === 'circle') {
+                // 圆形图案
+                for (let i = 0; i <= 360; i += 10) {
+                    const angle = (Math.PI / 180) * i;
+                    const x = center[0] + radius * Math.cos(angle);
+                    const y = center[1] + radius * Math.sin(angle);
+                    paths.push([x, y]);
+                }
+            }
+            return paths;
+        }
+
+        // 4. 绘制图案路径
+        function drawPattern(path) {
+            // 清除已有路径
+            map.clearMap();
+
+            // 在地图上绘制新路径
+            new AMap.Polyline({
+                path: path,
+                strokeColor: "#FF0000",
+                strokeWeight: 5,
+                map: map
+            });
+        }
+
+        // 5. 绑定按钮事件
+        document.getElementById('preview').addEventListener('click', () => {
+            const distance = parseFloat(document.getElementById('distance').value);
             const pattern = document.getElementById('pattern').value;
 
-            if (!distance || !currentPosition) {
-                alert('请输入跑步距离，并确保定位成功！');
+            if (!distance || distance <= 0) {
+                alert('请输入有效的跑步距离');
                 return;
             }
 
-            console.log(`生成路线: 图案=${pattern}, 距离=${distance}km`);
-            generateRoutes(pattern, distance);
+            const center = map.getCenter(); // 地图中心点
+            const path = generatePath([center.lng, center.lat], pattern, distance);
+            drawPattern(path);
+
+            // 启用确认按钮
+            document.getElementById('confirm').disabled = false;
         });
 
-        // 模拟生成推荐路线
-        function generateRoutes(pattern, distance) {
-            const optionsDiv = document.getElementById('route-options');
-            optionsDiv.innerHTML = '';
+        document.getElementById('confirm').addEventListener('click', () => {
+            const distance = document.getElementById('distance').value;
+            const pattern = document.getElementById('pattern').value;
 
-            // 模拟生成3条推荐路线
-            for (let i = 1; i <= 3; i++) {
-                const routeDiv = document.createElement('div');
-                routeDiv.classList.add('route-option');
-                routeDiv.innerText = `${pattern} 图案路线 ${i} (${distance}km)`;
-                routeDiv.addEventListener('click', () => {
-                    alert(`选择了 ${pattern} 图案路线 ${i}`);
-                    // 拼接并跳转到地图页面
-                    window.location.href = `index.html?distance=${distance}&pattern=${pattern}`;
-                });
-                optionsDiv.appendChild(routeDiv);
-            }
-        }
+            // 跳转到地图绘制页面
+            window.location.href = `index.html?distance=${distance}&pattern=${pattern}`;
+        });
     </script>
 </body>
 </html>
