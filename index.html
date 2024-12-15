@@ -24,6 +24,32 @@
     </div>
     
     <script>
+        // 获取 URL 参数
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            const distance = params.get('distance'); // 跑步距离
+            const pattern = params.get('pattern');  // 图案类型
+            return { distance, pattern };
+        }
+
+        // 根据参数执行逻辑
+        const { distance, pattern } = getQueryParams();
+        console.log(`跑步距离: ${distance} km`);
+        console.log(`图案类型: ${pattern}`);
+
+        // 示例：动态调整页面内容
+        document.addEventListener('DOMContentLoaded', () => {
+            const infoDiv = document.createElement('div');
+            infoDiv.style.position = 'absolute';
+            infoDiv.style.top = '10px';
+            infoDiv.style.left = '10px';
+            infoDiv.style.backgroundColor = 'white';
+            infoDiv.style.padding = '10px';
+            infoDiv.style.border = '1px solid #ccc';
+            infoDiv.innerHTML = `图案类型: ${pattern} <br> 跑步距离: ${distance} km`;
+            document.body.appendChild(infoDiv);
+        });
+
         // 初始化地图
         var map = new AMap.Map('container', {
             zoom: 15, // 地图缩放级别

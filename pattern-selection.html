@@ -106,8 +106,8 @@
                 routeDiv.innerText = `${pattern} 图案路线 ${i} (${distance}km)`;
                 routeDiv.addEventListener('click', () => {
                     alert(`选择了 ${pattern} 图案路线 ${i}`);
-                    // 跳转到地图页面
-                    window.location.href = `map.html?pattern=${pattern}&route=${i}`;
+                    // 拼接并跳转到地图页面
+                    window.location.href = `index.html?distance=${distance}&pattern=${pattern}`;
                 });
                 optionsDiv.appendChild(routeDiv);
             }
