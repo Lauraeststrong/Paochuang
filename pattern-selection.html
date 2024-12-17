@@ -46,15 +46,20 @@
 
     <!-- 用户输入 -->
     <div class="controls">
-        <label for="distance">跑步距离 (km):</label>
-        <input type="number" id="distance" placeholder="例如：5">
+        <!-- 嵌套优化，避免 for 关联问题 -->
+        <label>
+            跑步距离 (km):
+            <input type="number" id="distance" placeholder="例如：5">
+        </label>
 
-        <label for="pattern">选择跑步图案:</label>
-        <select id="pattern">
-            <option value="heart">心形</option>
-            <option value="star">星形</option>
-            <option value="circle">圆形</option>
-        </select>
+        <label>
+            选择跑步图案:
+            <select id="pattern">
+                <option value="heart">心形</option>
+                <option value="star">星形</option>
+                <option value="circle">圆形</option>
+            </select>
+        </label>
 
         <button id="preview" class="preview-btn">预览图案</button>
         <button id="confirm" class="preview-btn" disabled>确认并跳转</button>
@@ -84,7 +89,7 @@
             });
         });
 
-        // 3. 简单图案生成逻辑
+        // 3. 图案生成逻辑
         function generatePath(center, pattern, distance) {
             const paths = [];
             const radius = distance * 100; // 距离转换为地图单位（米）
@@ -122,9 +127,7 @@
 
         // 4. 绘制图案路径
         function drawPattern(path) {
-
             console.log('绘制的路径点:', path);
-
 
             // 清除已有路径
             map.clearMap();

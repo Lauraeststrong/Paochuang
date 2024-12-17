@@ -22,30 +22,15 @@
         // 获取 URL 参数
         function getQueryParams() {
             const params = new URLSearchParams(window.location.search);
-            const distance = params.get('distance'); // 跑步距离
-            const pattern = params.get('pattern');  // 图案类型
+            const distance = params.get('distance');
+            const pattern = params.get('pattern');
             return { distance, pattern };
         }
 
-        // 根据参数执行逻辑
         const { distance, pattern } = getQueryParams();
         console.log(`跑步距离: ${distance} km`);
         console.log(`图案类型: ${pattern}`);
 
-        // 示例：动态调整页面内容
-        document.addEventListener('DOMContentLoaded', () => {
-            const infoDiv = document.createElement('div');
-            infoDiv.style.position = 'absolute';
-            infoDiv.style.top = '10px';
-            infoDiv.style.left = '10px';
-            infoDiv.style.backgroundColor = 'white';
-            infoDiv.style.padding = '10px';
-            infoDiv.style.border = '1px solid #ccc';
-            infoDiv.innerHTML = `图案类型: ${pattern} <br> 跑步距离: ${distance} km`;
-            document.body.appendChild(infoDiv);
-        });
-
-        // 初始化地图
         const map = new AMap.Map('container', { zoom: 15 });
         let currentPosition = null;
         let marker = null;
@@ -53,10 +38,8 @@
         let path = [];
         let isDrawing = false;
 
-        // 初始化定位功能
-        let geolocation = null;
-        AMap.plugin('AMap.Geolocation', function () {
-            geolocation = new AMap.Geolocation({
+        AMap.plugin('AMap.Geolocation', () => {
+            const geolocation = new AMap.Geolocation({
                 enableHighAccuracy: true,
                 timeout: 10000,
                 showCircle: false,
@@ -65,13 +48,10 @@
             });
             map.addControl(geolocation);
 
-            // 初次定位
             geolocation.getCurrentPosition((status, result) => {
                 if (status === 'complete') {
                     currentPosition = result.position;
-
-                    console.log('当前定位坐标:', position);
-
+                    console.log('当前定位坐标:', currentPosition);
                     map.setCenter([currentPosition.lng, currentPosition.lat]);
                     updateMarker(currentPosition);
                 } else {
@@ -79,31 +59,27 @@
                 }
             });
 
-            // 实时监听位置变化
-            //geolocation.watchPosition((status, result) => {
-                //if (status === 'complete' && isDrawing) {
-                    //currentPosition = result.position;
-                    //updateMarker(currentPosition);
-                    //updatePath(currentPosition);
-                //}
-            //});
-
-            //添加调试打印：
             geolocation.watchPosition((status, result) => {
-                if (status === 'complete' && isTracking) {
+                if (status === 'complete' && isDrawing) {
                     const position = result.position;
                     console.log('实时定位点:', position);
-
                     path.push([position.lng, position.lat]);
                     console.log('路径更新:', path);
-
-                    polyline.setPath(path);
+                    if (!polyline) {
+                        polyline = new AMap.Polyline({
+                            path: path,
+                            strokeColor: "#FF0000",
+                            strokeWeight: 6,
+                            strokeOpacity: 0.7,
+                            map: map,
+                        });
+                    } else {
+                        polyline.setPath(path);
+                    }
                 }
             });
-
         });
 
-        // 更新定位图标及方向
         function updateMarker(position) {
             if (!marker) {
                 marker = new AMap.Marker({
@@ -117,36 +93,11 @@
             }
         }
 
-        // 更新绘制路径
-        function updatePath(position) {
-            path.push([position.lng, position.lat]);
-            if (!polyline) {
-                polyline = new AMap.Polyline({
-                    path: path,
-                    strokeColor: "#FF0000",
-                    strokeWeight: 6,
-                    strokeOpacity: 0.7,
-                    map: map,
-                });
-            } else {
-                polyline.setPath(path);
-            }
-        }
-
-        // 按钮事件绑定
         document.getElementById('startBtn').addEventListener('click', () => {
             isDrawing = true;
-
-            console.log('开始绘制路径');
-
             document.getElementById('pauseBtn').disabled = false;
             document.getElementById('endBtn').disabled = false;
             document.getElementById('startBtn').disabled = true;
-
-            // 开始记录路径
-            if (currentPosition) {
-                updatePath(currentPosition);
-            }
         });
 
         document.getElementById('pauseBtn').addEventListener('click', () => {
@@ -157,25 +108,15 @@
 
         document.getElementById('endBtn').addEventListener('click', () => {
             isDrawing = false;
-
-            // 保存地图截图及路径
-            map.plugin(['AMap.AdvancedInfoWindow'], () => {
-                map.getMapScreenShot((screenshotData) => {
-                    console.log('保存截图', screenshotData); // 可发送至后端
-                });
-            });
-
-            console.log('保存路径', path); // 可发送至后端
+            console.log('保存路径', path);
             resetState();
         });
 
-        // 重置状态
         function resetState() {
             path = [];
             polyline = null;
             marker = null;
             currentPosition = null;
-
             document.getElementById('startBtn').disabled = false;
             document.getElementById('pauseBtn').disabled = true;
             document.getElementById('endBtn').disabled = true;
