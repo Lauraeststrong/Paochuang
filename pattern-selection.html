@@ -4,143 +4,102 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>选择图案跑步路线</title>
-    <script src="https://webapi.amap.com/maps?v=2.0&key=你的高德API密钥"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
-        #map {
-            width: 100%;
-            height: 70%;
-        }
-        .controls {
+        .container {
             padding: 20px;
             background-color: #f9f9f9;
+            text-align: center;
         }
-        .controls label {
-            display: block;
-            margin-bottom: 10px;
+        .question {
+            font-size: 24px;
+            margin-bottom: 20px;
         }
-        .controls input, .controls select, .controls button {
-            margin-bottom: 15px;
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
+        .option {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 30px;
+            background-color: #ddd;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
         }
-        .preview-btn {
+        .option:hover {
+            background-color: #ccc;
+        }
+        .selected {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        #confirm {
+            margin-top: 20px;
+            padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
             border: none;
             cursor: pointer;
+            font-size: 18px;
+            display: none;
         }
-        .preview-btn:hover {
+        #confirm:hover {
             background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <div id="map"></div>
-    <div class="controls">
-        <label>
-            跑步距离 (km):
-            <input type="number" id="distance" placeholder="例如：5">
-        </label>
-        <label>
-            选择跑步图案:
-            <select id="pattern">
-                <option value="heart">心形</option>
-                <option value="star">星形</option>
-                <option value="circle">圆形</option>
-            </select>
-        </label>
-        <button id="preview" class="preview-btn">预览图案</button>
-        <button id="confirm" class="preview-btn" disabled>确认并跳转</button>
+
+    <div class="container">
+        <div class="question">请选择你喜欢的图案：</div>
+        <div id="patternHeart" class="option">心形</div>
+        <div id="patternStar" class="option">星形</div>
+        <div id="patternCircle" class="option">圆形</div>
+        <div id="patternCustom" class="option">自定义文本</div>
+
+        <button id="confirm">确认并继续</button>
     </div>
+
     <script>
-        const map = new AMap.Map('map', {
-            zoom: 15,
-            center: [116.397428, 39.90923]
+        let selectedPattern = null;
+
+        // 获取所有选项
+        const options = document.querySelectorAll('.option');
+
+        // 为每个选项添加点击事件
+        options.forEach(option => {
+            option.addEventListener('click', () => {
+                // 移除所有选项的高亮
+                options.forEach(opt => opt.classList.remove('selected'));
+
+                // 给当前选中的选项添加高亮
+                option.classList.add('selected');
+
+                // 设置选中的图案
+                selectedPattern = option.innerText;
+
+                // 显示确认按钮
+                document.getElementById('confirm').style.display = 'inline-block';
+            });
         });
 
-        AMap.plugin('AMap.Geolocation', () => {
-            const geolocation = new AMap.Geolocation({
-                enableHighAccuracy: true,
-                timeout: 10000
-            });
-            map.addControl(geolocation);
-            geolocation.getCurrentPosition((status, result) => {
-                if (status === 'complete') {
-                    map.setCenter([result.position.lng, result.position.lat]);
-                } else {
-                    alert('定位失败，请检查网络或GPS设置');
-                }
-            });
-        });
-
-        function generatePath(center, pattern, distance) {
-            const paths = [];
-            const radius = distance * 100;
-            if (pattern === 'heart') {
-                for (let i = 0; i <= 360; i += 10) {
-                    const angle = (Math.PI / 180) * i;
-                    const x = center[0] + radius * Math.sin(angle) * Math.cos(angle);
-                    const y = center[1] + radius * Math.sin(angle);
-                    paths.push([x, y]);
-                }
-            } else if (pattern === 'star') {
-                const numPoints = 5;
-                for (let i = 0; i <= 360; i += 360 / (numPoints * 2)) {
-                    const angle = (Math.PI / 180) * i;
-                    const r = (i % 72 === 0) ? radius : radius / 2;
-                    const x = center[0] + r * Math.cos(angle);
-                    const y = center[1] + r * Math.sin(angle);
-                    paths.push([x, y]);
-                }
-            } else if (pattern === 'circle') {
-                for (let i = 0; i <= 360; i += 10) {
-                    const angle = (Math.PI / 180) * i;
-                    const x = center[0] + radius * Math.cos(angle);
-                    const y = center[1] + radius * Math.sin(angle);
-                    paths.push([x, y]);
-                }
-            }
-            return paths;
-        }
-
-        function drawPattern(path) {
-            map.clearMap();
-            new AMap.Polyline({
-                path: path,
-                strokeColor: "#FF0000",
-                strokeWeight: 5,
-                map: map
-            });
-        }
-
-        document.getElementById('preview').addEventListener('click', () => {
-            const distance = parseFloat(document.getElementById('distance').value);
-            const pattern = document.getElementById('pattern').value;
-
-            if (!distance || distance <= 0) {
-                alert('请输入有效的跑步距离');
-                return;
-            }
-
-            const center = map.getCenter();
-            const path = generatePath([center.lng, center.lat], pattern, distance);
-            drawPattern(path);
-
-            document.getElementById('confirm').disabled = false;
-        });
-
+        // 点击确认按钮后执行下一步
         document.getElementById('confirm').addEventListener('click', () => {
-            const distance = document.getElementById('distance').value;
-            const pattern = document.getElementById('pattern').value;
-
-            window.location.href = `preview-map.html?distance=${distance}&pattern=${pattern}&lng=${map.getCenter().lng}&lat=${map.getCenter().lat}`;
+            if (selectedPattern) {
+                // 显示确认信息或执行后续逻辑
+                alert(`你选择的图案是：${selectedPattern}`);
+                
+                // 这里可以继续处理后续步骤或更新页面内容
+                // 比如你可以动态展示“选择跑步路线的难度”等内容，模拟问卷式多步骤操作
+            } else {
+                alert('请选择一个图案');
+            }
         });
     </script>
+
 </body>
 </html>
