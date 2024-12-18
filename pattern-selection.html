@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>选择图案跑步路线</title>
-    <script src="https://webapi.amap.com/maps?v=2.0&key=5d85ca7ca6fdfbb78e9468a3c9d7ce09"></script>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=你的高德API密钥"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -23,7 +23,7 @@
             display: block;
             margin-bottom: 10px;
         }
-        .controls input, .controls select, .controls button, .controls textarea {
+        .controls input, .controls select, .controls button {
             margin-bottom: 15px;
             width: 100%;
             padding: 10px;
@@ -55,21 +55,15 @@
                 <option value="circle">圆形</option>
             </select>
         </label>
-        <label>
-            输入跑步形状描述（AI生成）:
-            <textarea id="shape-text" placeholder="例如：画一个太阳，或者蛇形..."></textarea>
-        </label>
         <button id="preview" class="preview-btn">预览图案</button>
         <button id="confirm" class="preview-btn" disabled>确认并跳转</button>
     </div>
     <script>
-        // 初始化地图
         const map = new AMap.Map('map', {
             zoom: 15,
             center: [116.397428, 39.90923]
         });
 
-        // 获取用户定位
         AMap.plugin('AMap.Geolocation', () => {
             const geolocation = new AMap.Geolocation({
                 enableHighAccuracy: true,
@@ -85,11 +79,9 @@
             });
         });
 
-        // 生成图案的路径点
         function generatePath(center, pattern, distance) {
             const paths = [];
-            const radius = distance * 100; // 距离转换为地图单位（米）
-
+            const radius = distance * 100;
             if (pattern === 'heart') {
                 for (let i = 0; i <= 360; i += 10) {
                     const angle = (Math.PI / 180) * i;
@@ -98,10 +90,10 @@
                     paths.push([x, y]);
                 }
             } else if (pattern === 'star') {
-                const numPoints = 5; // 星形顶点数
+                const numPoints = 5;
                 for (let i = 0; i <= 360; i += 360 / (numPoints * 2)) {
                     const angle = (Math.PI / 180) * i;
-                    const r = (i % 72 === 0) ? radius : radius / 2; // 大小半径交替
+                    const r = (i % 72 === 0) ? radius : radius / 2;
                     const x = center[0] + r * Math.cos(angle);
                     const y = center[1] + r * Math.sin(angle);
                     paths.push([x, y]);
@@ -117,41 +109,6 @@
             return paths;
         }
 
-        // 使用简单 AI 逻辑生成文字描述图案路径
-        function generateAIPath(center, text, distance) {
-            const paths = [];
-            const radius = distance * 100; // 距离转换为地图单位（米）
-            // 简单逻辑解析文字并生成路径
-            if (text.includes('蛇形')) {
-                for (let i = 0; i <= 360; i += 20) {
-                    const angle = (Math.PI / 180) * i;
-                    const x = center[0] + radius * Math.cos(angle) * Math.sin(angle);
-                    const y = center[1] + radius * Math.sin(angle) * Math.sin(angle / 2);
-                    paths.push([x, y]);
-                }
-            } else if (text.includes('太阳')) {
-                for (let i = 0; i <= 360; i += 30) {
-                    const angle = (Math.PI / 180) * i;
-                    const x = center[0] + radius * Math.cos(angle);
-                    const y = center[1] + radius * Math.sin(angle);
-                    paths.push([x, y]);
-                }
-                // 添加“光芒”效果
-                for (let i = 0; i < 12; i++) {
-                    const angle = (Math.PI / 180) * (i * 30);
-                    const x1 = center[0] + radius * Math.cos(angle);
-                    const y1 = center[1] + radius * Math.sin(angle);
-                    const x2 = center[0] + (radius + 50) * Math.cos(angle);
-                    const y2 = center[1] + (radius + 50) * Math.sin(angle);
-                    paths.push([x1, y1], [x2, y2]);
-                }
-            } else {
-                alert('AI 暂时无法识别该图案描述，请尝试其他描述！');
-            }
-            return paths;
-        }
-
-        // 绘制图案路径
         function drawPattern(path) {
             map.clearMap();
             new AMap.Polyline({
@@ -162,11 +119,9 @@
             });
         }
 
-        // 预览按钮事件
         document.getElementById('preview').addEventListener('click', () => {
             const distance = parseFloat(document.getElementById('distance').value);
             const pattern = document.getElementById('pattern').value;
-            const shapeText = document.getElementById('shape-text').value.trim();
 
             if (!distance || distance <= 0) {
                 alert('请输入有效的跑步距离');
@@ -174,34 +129,17 @@
             }
 
             const center = map.getCenter();
-            let path;
-            if (shapeText) {
-                path = generateAIPath([center.lng, center.lat], shapeText, distance);
-            } else {
-                path = generatePath([center.lng, center.lat], pattern, distance);
-            }
+            const path = generatePath([center.lng, center.lat], pattern, distance);
+            drawPattern(path);
 
-            if (path && path.length > 0) {
-                drawPattern(path);
-                document.getElementById('confirm').disabled = false;
-            }
+            document.getElementById('confirm').disabled = false;
         });
 
-        // 确认按钮事件
         document.getElementById('confirm').addEventListener('click', () => {
             const distance = document.getElementById('distance').value;
             const pattern = document.getElementById('pattern').value;
-            const shapeText = document.getElementById('shape-text').value.trim();
 
-            const params = new URLSearchParams({
-                distance: distance,
-                pattern: pattern,
-                shapeText: shapeText,
-                lng: map.getCenter().lng,
-                lat: map.getCenter().lat
-            });
-
-            window.location.href = `preview-map.html?${params.toString()}`;
+            window.location.href = `preview-map.html?distance=${distance}&pattern=${pattern}&lng=${map.getCenter().lng}&lat=${map.getCenter().lat}`;
         });
     </script>
 </body>
