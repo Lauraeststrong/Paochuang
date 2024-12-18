@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +23,7 @@
             display: block;
             margin-bottom: 10px;
         }
-        .controls input, .controls select, .controls button {
+        .controls input, .controls select, .controls button, .controls textarea {
             margin-bottom: 15px;
             width: 100%;
             padding: 10px;
@@ -41,17 +41,12 @@
     </style>
 </head>
 <body>
-    <!-- 地图容器 -->
     <div id="map"></div>
-
-    <!-- 用户输入 -->
     <div class="controls">
-        <!-- 嵌套优化，避免 for 关联问题 -->
         <label>
             跑步距离 (km):
             <input type="number" id="distance" placeholder="例如：5">
         </label>
-
         <label>
             选择跑步图案:
             <select id="pattern">
@@ -60,19 +55,21 @@
                 <option value="circle">圆形</option>
             </select>
         </label>
-
+        <label>
+            输入跑步形状描述（AI生成）:
+            <textarea id="shape-text" placeholder="例如：画一个太阳，或者蛇形..."></textarea>
+        </label>
         <button id="preview" class="preview-btn">预览图案</button>
         <button id="confirm" class="preview-btn" disabled>确认并跳转</button>
     </div>
-
     <script>
-        // 1. 初始化地图
+        // 初始化地图
         const map = new AMap.Map('map', {
             zoom: 15,
-            center: [116.397428, 39.90923] // 默认中心点：北京
+            center: [116.397428, 39.90923]
         });
 
-        // 2. 监听用户定位
+        // 获取用户定位
         AMap.plugin('AMap.Geolocation', () => {
             const geolocation = new AMap.Geolocation({
                 enableHighAccuracy: true,
@@ -81,7 +78,6 @@
             map.addControl(geolocation);
             geolocation.getCurrentPosition((status, result) => {
                 if (status === 'complete') {
-                    console.log('定位成功:', result.position);
                     map.setCenter([result.position.lng, result.position.lat]);
                 } else {
                     alert('定位失败，请检查网络或GPS设置');
@@ -89,13 +85,12 @@
             });
         });
 
-        // 3. 图案生成逻辑
+        // 生成图案的路径点
         function generatePath(center, pattern, distance) {
             const paths = [];
             const radius = distance * 100; // 距离转换为地图单位（米）
 
             if (pattern === 'heart') {
-                // 心形图案
                 for (let i = 0; i <= 360; i += 10) {
                     const angle = (Math.PI / 180) * i;
                     const x = center[0] + radius * Math.sin(angle) * Math.cos(angle);
@@ -103,7 +98,6 @@
                     paths.push([x, y]);
                 }
             } else if (pattern === 'star') {
-                // 星形图案
                 const numPoints = 5; // 星形顶点数
                 for (let i = 0; i <= 360; i += 360 / (numPoints * 2)) {
                     const angle = (Math.PI / 180) * i;
@@ -113,7 +107,6 @@
                     paths.push([x, y]);
                 }
             } else if (pattern === 'circle') {
-                // 圆形图案
                 for (let i = 0; i <= 360; i += 10) {
                     const angle = (Math.PI / 180) * i;
                     const x = center[0] + radius * Math.cos(angle);
@@ -121,18 +114,46 @@
                     paths.push([x, y]);
                 }
             }
-            console.log('生成的路径点:', paths);
             return paths;
         }
 
-        // 4. 绘制图案路径
+        // 使用简单 AI 逻辑生成文字描述图案路径
+        function generateAIPath(center, text, distance) {
+            const paths = [];
+            const radius = distance * 100; // 距离转换为地图单位（米）
+            // 简单逻辑解析文字并生成路径
+            if (text.includes('蛇形')) {
+                for (let i = 0; i <= 360; i += 20) {
+                    const angle = (Math.PI / 180) * i;
+                    const x = center[0] + radius * Math.cos(angle) * Math.sin(angle);
+                    const y = center[1] + radius * Math.sin(angle) * Math.sin(angle / 2);
+                    paths.push([x, y]);
+                }
+            } else if (text.includes('太阳')) {
+                for (let i = 0; i <= 360; i += 30) {
+                    const angle = (Math.PI / 180) * i;
+                    const x = center[0] + radius * Math.cos(angle);
+                    const y = center[1] + radius * Math.sin(angle);
+                    paths.push([x, y]);
+                }
+                // 添加“光芒”效果
+                for (let i = 0; i < 12; i++) {
+                    const angle = (Math.PI / 180) * (i * 30);
+                    const x1 = center[0] + radius * Math.cos(angle);
+                    const y1 = center[1] + radius * Math.sin(angle);
+                    const x2 = center[0] + (radius + 50) * Math.cos(angle);
+                    const y2 = center[1] + (radius + 50) * Math.sin(angle);
+                    paths.push([x1, y1], [x2, y2]);
+                }
+            } else {
+                alert('AI 暂时无法识别该图案描述，请尝试其他描述！');
+            }
+            return paths;
+        }
+
+        // 绘制图案路径
         function drawPattern(path) {
-            console.log('绘制的路径点:', path);
-
-            // 清除已有路径
             map.clearMap();
-
-            // 在地图上绘制新路径
             new AMap.Polyline({
                 path: path,
                 strokeColor: "#FF0000",
@@ -141,33 +162,46 @@
             });
         }
 
-        // 5. 绑定按钮事件
+        // 预览按钮事件
         document.getElementById('preview').addEventListener('click', () => {
             const distance = parseFloat(document.getElementById('distance').value);
             const pattern = document.getElementById('pattern').value;
-
-            console.log('输入的跑步距离:', distance);
-            console.log('选择的图案:', pattern);
+            const shapeText = document.getElementById('shape-text').value.trim();
 
             if (!distance || distance <= 0) {
                 alert('请输入有效的跑步距离');
                 return;
             }
 
-            const center = map.getCenter(); // 地图中心点
-            const path = generatePath([center.lng, center.lat], pattern, distance);
-            drawPattern(path);
+            const center = map.getCenter();
+            let path;
+            if (shapeText) {
+                path = generateAIPath([center.lng, center.lat], shapeText, distance);
+            } else {
+                path = generatePath([center.lng, center.lat], pattern, distance);
+            }
 
-            // 启用确认按钮
-            document.getElementById('confirm').disabled = false;
+            if (path && path.length > 0) {
+                drawPattern(path);
+                document.getElementById('confirm').disabled = false;
+            }
         });
 
+        // 确认按钮事件
         document.getElementById('confirm').addEventListener('click', () => {
             const distance = document.getElementById('distance').value;
             const pattern = document.getElementById('pattern').value;
+            const shapeText = document.getElementById('shape-text').value.trim();
 
-            // 跳转到地图绘制页面
-            window.location.href = `index.html?distance=${distance}&pattern=${pattern}`;
+            const params = new URLSearchParams({
+                distance: distance,
+                pattern: pattern,
+                shapeText: shapeText,
+                lng: map.getCenter().lng,
+                lat: map.getCenter().lat
+            });
+
+            window.location.href = `preview-map.html?${params.toString()}`;
         });
     </script>
 </body>

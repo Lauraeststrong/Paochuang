@@ -1,49 +1,74 @@
-<!-- preview-map.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <title>地图预览</title>
-    <!-- 引入高德地图 API -->
     <script src="https://webapi.amap.com/maps?v=2.0&key=5d85ca7ca6fdfbb78e9468a3c9d7ce09"></script>
     <style>
         #map-container {
             width: 100%;
-            height: 100vh; /* 全屏显示地图 */
+            height: 100vh;
         }
     </style>
 </head>
 <body>
-    <!-- 地图容器 -->
     <div id="map-container"></div>
-
     <script>
-        // 从 URL 参数获取经纬度和缩放级别（假设数据通过 URL 传递）
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
             return {
-                lng: parseFloat(params.get('lng')) || 116.397428, // 默认经度（北京）
-                lat: parseFloat(params.get('lat')) || 39.90923,   // 默认纬度（北京）
-                zoom: parseInt(params.get('zoom')) || 15         // 默认缩放级别
+                distance: parseFloat(params.get('distance')),
+                pattern: params.get('pattern'),
+                lng: parseFloat(params.get('lng')),
+                lat: parseFloat(params.get('lat'))
             };
         }
 
-        window.onload = function() {
-            const params = getUrlParams();
+        const map = new AMap.Map('map-container', {
+            zoom: 15,
+            center: [116.397428, 39.90923]
+        });
 
-            // 初始化地图
-            const map = new AMap.Map('map-container', {
-                center: [params.lng, params.lat], // 地图中心
-                zoom: params.zoom                 // 缩放级别
-            });
+        function generatePath(center, pattern, distance) {
+            const paths = [];
+            const radius = distance * 100;
+            if (pattern === 'heart') {
+                for (let i = 0; i <= 360; i += 10) {
+                    const angle = (Math.PI / 180) * i;
+                    const x = center[0] + radius * Math.sin(angle) * Math.cos(angle);
+                    const y = center[1] + radius * Math.sin(angle);
+                    paths.push([x, y]);
+                }
+            } else if (pattern === 'star') {
+                const numPoints = 5;
+                for (let i = 0; i <= 360; i += 360 / (numPoints * 2)) {
+                    const angle = (Math.PI / 180) * i;
+                    const r = (i % 72 === 0) ? radius : radius / 2;
+                    const x = center[0] + r * Math.cos(angle);
+                    const y = center[1] + r * Math.sin(angle);
+                    paths.push([x, y]);
+                }
+            } else if (pattern === 'circle') {
+                for (let i = 0; i <= 360; i += 10) {
+                    const angle = (Math.PI / 180) * i;
+                    const x = center[0] + radius * Math.cos(angle);
+                    const y = center[1] + radius * Math.sin(angle);
+                    paths.push([x, y]);
+                }
+            }
+            return paths;
+        }
 
-            // 添加标记（可选）
-            const marker = new AMap.Marker({
-                position: [params.lng, params.lat],
-                title: '预览位置'
-            });
-            map.add(marker);
-        };
+        const params = getUrlParams();
+        const center = [params.lng, params.lat];
+        const path = generatePath(center, params.pattern, params.distance);
+
+        new AMap.Polyline({
+            path: path,
+            strokeColor: "#FF0000",
+            strokeWeight: 5,
+            map: map
+        });
     </script>
 </body>
 </html>
