@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>导航页</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: #000; /* 黑色背景 */
+        font-family: 'Roboto', sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        overflow: hidden;
+    }
+    h1 {
+        color: #0ff; /* 青色荧光 */
+        text-shadow: 0 0 8px #0ff, 0 0 16px #0ff;
+        margin-bottom: 20px;
+        font-size: 3em;
+    }
+    .button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .button {
+        background: linear-gradient(45deg, #ff0099, #00ffff);
+        border: none;
+        padding: 15px 30px;
+        font-size: 1.2em;
+        color: #fff;
+        text-transform: uppercase;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 0 10px #ff0099, 0 0 20px #00ffff;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 20px #ff0099, 0 0 40px #00ffff;
+    }
+    .button:active {
+        transform: scale(0.95);
+    }
+</style>
+</head>
+<body>
+    <h1>选择图案类型</h1>
+    <div class="button-container">
+        <button class="button" onclick="navigate('fixed')">固定图案</button>
+        <button class="button" onclick="navigate('text')">文字图案</button>
+        <button class="button" onclick="navigate('custom')">自定义图案</button>
+    </div>
+
+    <script>
+        function navigate(type) {
+            // 向 Thunkable 传递导航数据
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({ action: 'navigate', type }));
+            } else {
+                alert(`导航至: ${type}`);
+            }
+        }
+    </script>
+</body>
+</html>
