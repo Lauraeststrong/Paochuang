@@ -58,14 +58,19 @@
 
     <script>
         function navigate(type) {
+            console.log("发送消息至 Thunkable:", type);
             // 发送导航指令给 WebViewer
             if (window.ReactNativeWebView) {
                 // window.ReactNativeWebView.postMessage(JSON.stringify({ action: 'navigate', type }));
                 window.ReactNativeWebView.postMessage(type); // 仅传递类型
             } else {
-                console.log(`导航至: ${type}`);
+                alert(`导航至: ${type}`);
             }
         }
+
+        document.getElementById("fixed-btn").onclick = () => navigate("fixed");
+        document.getElementById("text-btn").onclick = () => navigate("text");
+        document.getElementById("custom-btn").onclick = () => navigate("custom");
     </script>
         <button onclick="window.ReactNativeWebView.postMessage('test-message');">
         测试消息发送
