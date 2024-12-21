@@ -18,15 +18,14 @@
         overflow: hidden;
     }
     h1 {
-        color: #0ff; /* 青色荧光 */
-        text-shadow: 0 0 8px #0ff, 0 0 16px #0ff;
-        margin-bottom: 20px;
+        color: #fff; /* 白色字体 */
+        margin-bottom: 30px;
         font-size: 3em;
     }
     .button-container {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 25px; /* 调整按钮间距 */
     }
     .button {
         background: linear-gradient(45deg, #ff0099, #00ffff);
@@ -59,11 +58,12 @@
 
     <script>
         function navigate(type) {
-            // 向 Thunkable 传递导航数据
+            // 发送导航指令给 WebViewer
             if (window.ReactNativeWebView) {
-                window.ReactNativeWebView.postMessage(JSON.stringify({ action: 'navigate', type }));
+                // window.ReactNativeWebView.postMessage(JSON.stringify({ action: 'navigate', type }));
+                window.ReactNativeWebView.postMessage(type); // 仅传递类型
             } else {
-                alert(`导航至: ${type}`);
+                console.log(`导航至: ${type}`);
             }
         }
     </script>
