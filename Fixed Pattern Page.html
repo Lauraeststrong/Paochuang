@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>固定图案选择</title>
+<style>
+    body { margin: 0; padding: 0; background: #000; font-family: 'Roboto', sans-serif; color: #fff; }
+    .header { text-align: center; padding: 10px; font-size: 1.5em; background: #1e1e1e; border-bottom: 2px solid #444; }
+    .scroll-container { display: flex; overflow-x: scroll; padding: 20px; background: #111; gap: 15px; }
+    .pattern-item { flex: 0 0 auto; width: 100px; height: 100px; border-radius: 10px; background: radial-gradient(circle, #FFD700, #FF8C00); display: flex; align-items: center; justify-content: center; font-size: 1.2em; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px #FFD700, 0 0 20px #FF8C00; transition: transform 0.2s ease; }
+    .pattern-item:hover { transform: scale(1.1); }
+    .controls { margin-top: 20px; text-align: center; }
+    .button { padding: 10px 20px; margin: 5px; font-size: 1em; background: linear-gradient(45deg, #00ffff, #ff0099); color: #fff; border: none; border-radius: 5px; cursor: pointer; box-shadow: 0 0 10px #00ffff, 0 0 20px #ff0099; }
+    .button:hover { transform: scale(1.1); }
+</style>
+</head>
+<body>
+    <div class="header">选择一个图案</div>
+    <div class="scroll-container" id="patternList">
+        <div class="pattern-item" onclick="selectPattern('Star')">⭐</div>
+        <div class="pattern-item" onclick="selectPattern('Circle')">⚪</div>
+        <div class="pattern-item" onclick="selectPattern('Heart')">❤️</div>
+        <div class="pattern-item" onclick="selectPattern('Z')">Z</div>
+    </div>
+    <div class="controls">
+        <button class="button" onclick="goBack()">返回导航页</button>
+        <button class="button" onclick="goToMap()">加载地图</button>
+    </div>
+
+    <script>
+        let selectedPattern = null;
+
+        function selectPattern(pattern) {
+            selectedPattern = pattern;
+            alert(`已选择: ${pattern}`);
+        }
+
+        function goBack() {
+            const data = { action: "navigateBack" };
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify(data));
+            } else {
+                alert("返回导航页");
+            }
+        }
+
+        function goToMap() {
+            if (!selectedPattern) {
+                alert("请先选择一个图案！");
+                return;
+            }
+
+            const data = {
+                action: "navigateToMap",
+                pattern: selectedPattern
+            };
+
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify(data));
+            } else {
+                alert(`加载地图 - 图案: ${selectedPattern}`);
+            }
+        }
+    </script>
+</body>
+</html>
