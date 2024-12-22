@@ -56,26 +56,27 @@
         <button class="button" onclick="navigate('custom')">自定义图案</button>
     </div>
 
+    <button onclick="testMessage()" style="margin-top: 20px;">测试消息发送</button>
+
     <script>
         function navigate(type) {
             console.log("发送消息至 Thunkable:", type);
             // 发送导航指令给 WebViewer
             if (window.ReactNativeWebView) {
-                // window.ReactNativeWebView.postMessage(JSON.stringify({ action: 'navigate', type }));
                 window.ReactNativeWebView.postMessage(type); // 仅传递类型
             } else {
                 alert(`导航至: ${type}`);
             }
         }
 
-        document.getElementById("fixed-btn").onclick = () => navigate("fixed");
-        document.getElementById("text-btn").onclick = () => navigate("text");
-        document.getElementById("custom-btn").onclick = () => navigate("custom");
+        function testMessage() {
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage("test-message");
+                console.log("测试消息已发送: test-message");
+            } else {
+                alert("ReactNativeWebView 未定义，无法发送消息");
+            }
+        }
     </script>
-        <button onclick="window.ReactNativeWebView.postMessage('test-message');">
-        测试消息发送
-        </button>
-
-
 </body>
 </html>
