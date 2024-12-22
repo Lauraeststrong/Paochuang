@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图展示</title>
+<style>
+    #map { height: 90%; width: 100%; }
+    .controls { text-align: center; padding: 10px; background: #1e1e1e; }
+    .button { padding: 10px 20px; font-size: 1em; background: linear-gradient(45deg, #00ffff, #ff0099); color: #fff; border: none; border-radius: 5px; cursor: pointer; box-shadow: 0 0 10px #00ffff, 0 0 20px #ff0099; margin: 5px; }
+</style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="controls">
+        <button class="button" onclick="goBack()">返回</button>
+        <button class="button" onclick="confirmPattern()">确认</button>
+    </div>
+
+    <script>
+        let map, marker;
+
+        function initMap() {
+            // 初始化高德地图
+            map = new AMap.Map("map", {
+                center: [116.397428, 39.90923], // 默认中心点（经度，纬度）
+                zoom: 13, // 缩放级别
+            });
+
+            // 添加可拖拽的标记点
+            marker = new AMap.Marker({
+                position: [116.397428, 39.90923], // 默认位置
+                draggable: true, // 可拖拽
+                map: map, // 添加到地图
+            });
+
+            map.add(marker);
+        }
+
+        function goBack() {
+            const data = { action: "navigateBack" };
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify(data));
+            } else {
+                alert("返回固定图案页");
+            }
+        }
+
+        function confirmPattern() {
+            const position = marker.getPosition(); // 获取标记点位置
+            const data = {
+                action: "confirmPattern",
+                position: { lng: position.lng, lat: position.lat },
+            };
+
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify(data));
+            } else {
+                alert(`确认 - 图案位置: ${JSON.stringify(data.position)}`);
+            }
+        }
+    </script>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=5d85ca7ca6fdfbb78e9468a3c9d7ce09"></script>
+    <script>
+        // 确保地图初始化
+        initMap();
+    </script>
+</body>
+</html>
