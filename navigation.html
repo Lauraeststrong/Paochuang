@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>导航页</title>
+<title>Fixed Pattern</title>
 <style>
     body {
         margin: 0;
         padding: 0;
-        background: #000; /* 黑色背景 */
+        background: #000;
         font-family: 'Roboto', sans-serif;
         display: flex;
         flex-direction: column;
@@ -18,63 +18,91 @@
         overflow: hidden;
     }
     h1 {
-        color: #fff; /* 白色字体 */
+        color: #fff;
         margin-bottom: 30px;
         font-size: 3em;
     }
-    .button-container {
-        display: flex;
-        flex-direction: column;
-        gap: 25px; /* 调整按钮间距 */
+    .pattern-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        width: 80%;
+        justify-items: center;
     }
-    .button {
-        background: linear-gradient(45deg, #ff0099, #00ffff);
-        border: none;
-        padding: 15px 30px;
-        font-size: 1.2em;
-        color: #fff;
-        text-transform: uppercase;
+    .pattern {
+        width: 100px;
+        height: 100px;
         border-radius: 10px;
+        background: linear-gradient(45deg, #ff0099, #00ffff);
         cursor: pointer;
         box-shadow: 0 0 10px #ff0099, 0 0 20px #00ffff;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .button:hover {
+    .pattern:hover {
         transform: scale(1.1);
         box-shadow: 0 0 20px #ff0099, 0 0 40px #00ffff;
     }
-    .button:active {
-        transform: scale(0.95);
+    .back-button {
+        margin-top: 30px;
+        padding: 15px 30px;
+        font-size: 1.2em;
+        background: linear-gradient(45deg, #00ffff, #ff0099);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 0 10px #00ffff, 0 0 20px #ff0099;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .back-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 20px #00ffff, 0 0 40px #ff0099;
     }
 </style>
 </head>
 <body>
-    <h1>选择图案类型</h1>
-    <div class="button-container">
-        <button class="button" onclick="navigate('fixed')">固定图案</button>
-        <button class="button" onclick="navigate('text')">文字图案</button>
-        <button class="button" onclick="navigate('custom')">自定义图案</button>
+    <h1>固定图案</h1>
+    <div class="pattern-container">
+        <div class="pattern" onclick="selectPattern('pattern1')"></div>
+        <div class="pattern" onclick="selectPattern('pattern2')"></div>
+        <div class="pattern" onclick="selectPattern('pattern3')"></div>
+        <div class="pattern" onclick="selectPattern('pattern4')"></div>
+        <div class="pattern" onclick="selectPattern('pattern5')"></div>
+        <div class="pattern" onclick="selectPattern('pattern6')"></div>
     </div>
-
-    <button onclick="testMessage()" style="margin-top: 20px;">测试消息发送</button>
+    <button class="back-button" onclick="goBack()">返回</button>
 
     <script>
-        function navigate(type) {
-            console.log("发送消息至 Thunkable:", type);
-            // 发送导航指令给 WebViewer
+        // 选择图案并发送信息到 Thunkable
+        function selectPattern(pattern) {
+            const data = {
+                action: "selectPattern",
+                pattern: pattern,
+                timestamp: new Date().toISOString()
+            };
+
+            console.log("选择的图案:", data);
+
             if (window.ReactNativeWebView) {
-                window.ReactNativeWebView.postMessage(type); // 仅传递类型
+                window.ReactNativeWebView.postMessage(JSON.stringify(data));
             } else {
-                alert(`导航至: ${type}`);
+                alert(`选择的图案: ${pattern}`);
             }
         }
 
-        function testMessage() {
+        // 返回导航页面
+        function goBack() {
+            const data = {
+                action: "navigateBack",
+                timestamp: new Date().toISOString()
+            };
+
+            console.log("返回导航页:", data);
+
             if (window.ReactNativeWebView) {
-                window.ReactNativeWebView.postMessage("test-message");
-                console.log("测试消息已发送: test-message");
+                window.ReactNativeWebView.postMessage(JSON.stringify(data));
             } else {
-                alert("ReactNativeWebView 未定义，无法发送消息");
+                alert("返回导航页");
             }
         }
     </script>
