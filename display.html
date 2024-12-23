@@ -1,17 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>地图展示</title>
-<style>
-    #map { height: 90%; width: 100%; }
-    .controls { text-align: center; padding: 10px; background: #1e1e1e; }
-    .button { padding: 10px 20px; font-size: 1em; background: linear-gradient(45deg, #00ffff, #ff0099); color: #fff; border: none; border-radius: 5px; cursor: pointer; box-shadow: 0 0 10px #00ffff, 0 0 20px #ff0099; margin: 5px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地图展示</title>
+    <style>
+        /* 地图容器的样式 */
+        #map { 
+            height: 90%; 
+            width: 100%; 
+        }
+
+        /* 控制按钮的样式 */
+        .controls { 
+            text-align: center; 
+            padding: 10px; 
+            background: #1e1e1e; 
+        }
+        .button { 
+            padding: 10px 20px; 
+            font-size: 1em; 
+            background: linear-gradient(45deg, #00ffff, #ff0099); 
+            color: #fff; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            box-shadow: 0 0 10px #00ffff, 0 0 20px #ff0099; 
+            margin: 5px; 
+        }
+    </style>
 </head>
 <body>
+    <!-- 地图容器 -->
     <div id="map"></div>
+
+    <!-- 按钮控件 -->
     <div class="controls">
         <button class="button" onclick="goBack()">返回</button>
         <button class="button" onclick="confirmPattern()">确认</button>
@@ -20,7 +43,24 @@
     <script>
         let map, marker;
 
+        /**
+         * 从 URL 中提取查询参数的工具函数
+         * @param {string} name 查询参数的名称
+         * @returns {string|null} 查询参数的值
+         */
+        function getQueryParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        /**
+         * 初始化地图
+         */
         function initMap() {
+            // 获取 URL 中的 pattern 参数
+            const pattern = getQueryParameter("pattern");
+            console.log(`加载的图案: ${pattern}`);
+
             // 初始化高德地图
             map = new AMap.Map("map", {
                 center: [116.397428, 39.90923], // 默认中心点（经度，纬度）
@@ -34,9 +74,19 @@
                 map: map, // 添加到地图
             });
 
-            map.add(marker);
+            // 在地图上显示 pattern 信息（如果有）
+            if (pattern) {
+                const infoWindow = new AMap.InfoWindow({
+                    content: `当前图案: ${pattern}`,
+                    offset: new AMap.Pixel(0, -30),
+                });
+                infoWindow.open(map, marker.getPosition());
+            }
         }
 
+        /**
+         * 返回到固定图案页面
+         */
         function goBack() {
             const data = { action: "navigateBack" };
             if (window.ReactNativeWebView) {
@@ -46,6 +96,9 @@
             }
         }
 
+        /**
+         * 确认标记点位置并发送消息
+         */
         function confirmPattern() {
             const position = marker.getPosition(); // 获取标记点位置
             const data = {
@@ -59,11 +112,12 @@
                 alert(`确认 - 图案位置: ${JSON.stringify(data.position)}`);
             }
         }
+
+        // 页面加载后初始化地图
+        window.onload = initMap;
     </script>
+
+    <!-- 高德地图 API -->
     <script src="https://webapi.amap.com/maps?v=2.0&key=5d85ca7ca6fdfbb78e9468a3c9d7ce09"></script>
-    <script>
-        // 确保地图初始化
-        initMap();
-    </script>
 </body>
 </html>
