@@ -93,10 +93,15 @@
                 pattern: selectedPattern
             };
 
+            console.log("发送的消息数据:", JSON.stringify(data)); // 调试信息
+
             if (window.ReactNativeWebView) {
                 window.ReactNativeWebView.postMessage(JSON.stringify(data));
             } else {
-                alert(`即将跳转到地图页面 - 图案: ${selectedPattern}`);
+                // alert(`即将跳转到地图页面 - 图案: ${selectedPattern}`);
+                // 模拟在浏览器中发送消息
+                console.log("模拟发送消息:", data);
+                alert(`模拟发送消息 - 图案: ${selectedPattern}`);
             }
         }
     </script>
